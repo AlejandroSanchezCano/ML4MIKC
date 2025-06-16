@@ -1,0 +1,13 @@
+# Aliases
+alias canceljob="scancel $(squeue -h -u asanchez -o %i)"
+alias just5min="sbatch --partition=gpu --ntasks=1 --gpus=1 --time=00:05:00 --pty /bin/bash"
+alias just10min="sbatch --partition=gpu --ntasks=1 --gpus=1 --time=00:10:00 --pty /bin/bash"
+
+# Conda environment
+conda create -n ml4mikc python=3.10 -y
+conda activate ml4mikc
+pip install requests    # 2.32.4
+pip install tqdm        # 4.67.1
+pip install bioservices # 1.12.1
+pip install multitax    # 1.3.1
+pip install aiohttp     # 3.12.12
