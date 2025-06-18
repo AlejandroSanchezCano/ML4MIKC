@@ -5,8 +5,6 @@ Outline:    Downloads the data from the IntAct, BioGRID, and PlaPPISite
             databases, reduces it to plant interactors if neccessary, 
             filters it to only MADS-MADS interactions, and standardizes it
             to a common format used by the Network class. 
-            It takes ~20 min for BioGRID, ~1h 30min for IntAct, and a lot for
-            PlaPPISite.
 Docs:       https://downloads.thebiogrid.org/BioGRID
             https://ftp.ebi.ac.uk/pub/databases/intact/
 Author:     Alejandro Sánchez Cano
