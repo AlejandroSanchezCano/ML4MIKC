@@ -22,7 +22,9 @@ SRC = ROOT / 'src'
 INTERACTORS = DATA / 'Interactors'
 NETWORKS = DATA / 'Networks'
 LITERATUREMINING = DATA / 'LiteratureMining'
-
+SCORING = DATA / 'Scoring'
+PROTEIN = DATA / 'Protein'
+PPI = DATA / 'PPI'
 
 # Databases
 DATABASES = DATA / 'Databases'

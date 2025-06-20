@@ -1,9 +1,14 @@
 """
 ===============================================================================
 Title:      Ledge
-Outline:    Ledge class to operate with the 'LEDGE.xlsx' file, which contains
-            the centralized information of the MIKC PPI literature mining
-            results.
+Outline:    Ledge class to operate with the 'LEDGE.xlsx' file, whose content
+            varies depend on the context:
+            1) Literature mining -> contains every protein listed in the papers
+            and how we arrived at their sequences.
+            2) Scoring -> contains the sequences and other metadata of all MIKC
+            proteins used in the domain swaps experiments.
+            In general, it is used to check if a BioOD is in the document and
+            fetch the content of other columns on the same row.
 Author:     Alejandro Sánchez Cano
 Date:       02/10/2024
 ===============================================================================

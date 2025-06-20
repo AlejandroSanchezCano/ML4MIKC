@@ -2,7 +2,9 @@
 ===============================================================================
 Title:      Paper
 Outline:    Paper class to operate with the literature mining results for a 
-            given paper. 
+            given paper. Using the author and the year, it fetches the excel
+            file with the interactions, processes the data, and returns a
+            DataFrame that can be merged with the rest of the data.
 Author:     Alejandro Sánchez Cano
 Date:       02/10/2024
 ===============================================================================
