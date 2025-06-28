@@ -255,13 +255,21 @@ logger.info(f"INTER raw vs normalized bitscores: {len(inter_common)} common PPIs
 logger.info(f"This is {len(inter_common) / len(seqs_bits[2]) * 100:.2f}% of the INTER PPIs with raw bitscores")
 logger.info(f"This is {len(inter_common) / len(seqs_norm[2]) * 100:.2f}% of the INTER PPIs with normalized bitscores")
 
+# Add partitions to Proteins
+for idx, protein in enumerate(Protein.iterate()):
+    protein.partition = partitions[idx]
+    protein.pickle()    
+
 # Add partitions to PPIs
 BITSCORE = 'normalized'
 blocks = norm_blocks if BITSCORE == 'normalized' else bits_blocks
 intra0, intra1, inter = blocks
 for ppi in intra0:
-    ppi.block = 'INTRA0'
+    ppi.partition = 'INTRA0'
+    ppi.pickle()
 for ppi in intra1:
-    ppi.block = 'INTRA1'
+    ppi.partition = 'INTRA1'
+    ppi.pickle()
 for ppi in inter:
-    ppi.block = 'INTER'
+    ppi.partition = 'INTER'
+    ppi.pickle()

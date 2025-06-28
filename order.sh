@@ -6,3 +6,4 @@ python src/databases/download_databases_PPIs.py
 
 # Sources
 src/sources/merge_sources.ipynb
+src/sources/add_kahip.py
