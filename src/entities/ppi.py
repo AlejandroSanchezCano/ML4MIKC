@@ -13,8 +13,10 @@ Date:       02/10/2024
 # Buit-in modules
 import pprint
 from typing import Generator
+from collections import Counter
 
 # Third-party modules
+import pandas as pd
 from tqdm import tqdm
 
 # Custom modules
@@ -78,10 +80,110 @@ class PPI:
             setattr(ppi, attribute, value)
         return ppi
 
+    def interact(self) -> int | str:
+        '''
+        Calculates the interaction score of the PPI by considering the
+        different interaction cases. A positive interaction is scored as 1,
+        a negative interaction as 0, and an uncertain interaction as '?'.
+        - Single origin:
+            - Single value: return it if not NC, AUTO, ND, NLW or nan
+            - Two values: return 1 if one of the values is 1, 0 if one of the 
+            values is 0, and ? if both are NC
+            - Multiple values: average and round them. If average around 0.5, return ?.
+        - Multiple origins:
+            - All from Scoring independent dataset: treat as single origin
+            - Different origins:
+                - All values are the same: return the value
+                - Different values:
+                    - Majority vote: return the majority value
+                    - No majority: ?
+        Returns
+        -------
+        int | str
+            Interaction score of the PPI -> 1, 0, or '?'.
+        '''
+        def score_single_origin_interactions(values: list[int | str]) -> int | str:
+            '''
+            Scores a single origin interaction based on the values provided.
+            
+            Parameters
+            ----------
+            values : list[int | str]
+                List of interaction values to score.
+            Returns
+            -------
+            int | str
+                Interaction score -> 1, 0, or '?'.
+            '''
+            # Fully disregard nan, 'AUTO', 'ND', 'NLW', as they are not useful
+            values = [v for v in values if v not in (None, 'AUTO', 'ND', 'NLW') and not pd.isna(v)]
+            if values == []: return '?'
+            # Consider 'NC' as 0.5, as it is sth in between 0 and 1
+            values = [0.5 if v == 'NC' else v for v in values]
+            # Single value -> return it if != 0.5
+            if len(values) == 1:
+                if values[0] == 0.5:
+                    return '?'
+                return int(values[0])
+            # Two values -> [1, 0] = 1 and [NC, NC] = ?
+            if len(values) == 2:
+                if 1 in values:
+                    return 1
+                elif 0 in values:
+                    return 0
+                elif values == [0.5, 0.5]:
+                    return '?'
+                else:
+                    raise ValueError(f'Unexpected values: {values}')
+            # Multiple values -> average
+            average = sum(values) / len(values)
+            if average > 3/5:
+                return 1
+            elif average < 2/5:
+                return 0
+            else:
+                return '?'
+
+        # Single origin
+        if len(self.origin) == 1:
+            return score_single_origin_interactions(self.interaction[0])
+        # Multiple origins -> condense Isa's interactions
+        origin2interactions = {origin:interaction for origin, interaction in zip(self.origin, self.interaction)}
+        scoring_origin = [origin for origin in self.origin if '&' in origin]
+        origin2interactions['scoring'] = []
+        for k in scoring_origin:
+            if k in scoring_origin:
+                origin2interactions['scoring'].extend(origin2interactions[k])
+                del origin2interactions[k]
+        if origin2interactions['scoring'] == []:
+            del origin2interactions['scoring']
+        # All interactions from Scoring independent dataset
+        if len(origin2interactions) == 1 and 'scoring' in origin2interactions:
+            scored = score_single_origin_interactions(origin2interactions['scoring'])
+            return scored
+        # Multiple origins with different interactions
+        else:
+            scored = [score_single_origin_interactions(interactions) for interactions in origin2interactions.values()]
+            if len(set(scored)) == 1:
+                return scored[0]
+            scored = [s for s in scored if s != '?']
+            freqs = list(Counter(scored).values())
+            is_balanced = lambda x: max(x) == min(x) 
+            if len(set(scored)) == 1 or not is_balanced(freqs):
+                return max(set(scored), key = scored.count)
+            else:
+                return '?'
+
     @staticmethod
-    def iterate() -> Generator['PPI', None, None]:
+    def iterate(interact: bool = False) -> Generator['PPI', None, None]:
         '''
         Iterates over all PPI objects in the PPI folder.
+
+        Parameters
+        ----------
+        interact : bool, optional
+            If True, calculates the interaction score of each PPI.
+            Default is False.
 
         Yields
         ------
@@ -93,7 +195,13 @@ class PPI:
             p1, p2 = file_name.stem.split('=')
             p1 = Protein(p1)
             p2 = Protein(p2)
-            yield PPI(p1, p2)
+            ppi = PPI(p1, p2)
+            if interact:
+                ppi.interaction = ppi.interact()
+                if ppi.interaction != '?':
+                    yield ppi
+            else:
+                yield ppi
 
     def pickle(self) -> None:
         '''

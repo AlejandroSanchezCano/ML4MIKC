@@ -44,7 +44,7 @@ class Paper:
             'Sequence_A': [],
             'Sequence_B': [],
             'Interaction': [],
-            'From': []
+            'Origin': []
         }
 
     def __repr__(self):
@@ -190,7 +190,7 @@ class Paper:
                     idx = idx.pop()
 
                     # Duplications are due to AB/DB setting
-                    self.df['Interaction'][idx][0][1].append(interaction)
+                    self.df['Interaction'][idx].append(interaction)
                 
                     continue
 
@@ -201,8 +201,8 @@ class Paper:
                 self.df['UniProtID_B'].append(Paper.ledge.fetch(b.split('_')[0], 'bioID', 'UniProtID'))
                 self.df['Sequence_A'].append(mut_seqs.split('=')[0])
                 self.df['Sequence_B'].append(mut_seqs.split('=')[1])
-                self.df['Interaction'].append([(f'{self.author}_{self.year}', [interaction])])
-                self.df['From'].append(self.__repr__())
+                self.df['Interaction'].append([interaction])
+                self.df['Origin'].append(self.__repr__())
 
     def interaction_df(self) -> pd.DataFrame:
         '''
@@ -220,7 +220,8 @@ class Paper:
         df = df.replace('NONE', pd.NA)
 
         # Remove NaNs (ND) on the interaction column
-        df = df[df['Interaction'] != 'ND']
+        valid = lambda x: set(x) - set([pd.NA, 'ND']) != set()
+        df = df[df['Interaction'].apply(valid)]
 
         # Logger
         logger.info(f'{self.author} ({self.year}) has {len(df)} interactions')
@@ -230,7 +231,7 @@ class Paper:
 if __name__ == '__main__':
     '''Test class'''
     Paper.validate_filestems()
-    paper = Paper('Gong', 2017)
+    paper = Paper('Jiang', 2022)
     paper.process()
     df = paper.interaction_df()
-    df.to_excel('Gong_2017.xlsx', index=False)
+    df.to_excel('Jiang_2022.xlsx', index=False)

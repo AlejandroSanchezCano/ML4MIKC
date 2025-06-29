@@ -45,7 +45,7 @@ class Scoring:
             'Sequence_A': [],
             'Sequence_B': [],
             'Interaction': [],
-            'From': [],
+            'Origin': [],
             'TaxonID_A': [],
             'TaxonID_B': [],
             'Species_A': [],
@@ -202,8 +202,7 @@ class Scoring:
                 idx = idx.pop()
 
                 # Duplications are due to multiple interations being tested (index and columns)
-                self.processed_df['Interaction'][idx][0] = (self.processed_df['Interaction'][idx][0][0], self.processed_df['Interaction'][idx][0][1] + interaction_ad + interaction_bd)
-
+                self.processed_df['Interaction'][idx] += interaction_ad + interaction_bd
 
                 continue
             
@@ -214,8 +213,8 @@ class Scoring:
             self.processed_df['UniProtID_B'].append(Scoring.ledge.fetch(column_name, 'bioID', 'UniProtID') if '+I-' not in column_name and 'δ' not in column_name else pd.NA)
             self.processed_df['Sequence_A'].append(seqs.split('=')[0])
             self.processed_df['Sequence_B'].append(seqs.split('=')[1])
-            self.processed_df['Interaction'].append([(self.file_stem, interaction_ad + interaction_bd)])
-            self.processed_df['From'].append(self.file_stem)
+            self.processed_df['Interaction'].append(interaction_ad + interaction_bd)
+            self.processed_df['Origin'].append(self.file_stem)
             self.processed_df['TaxonID_A'].append('3702')
             self.processed_df['TaxonID_B'].append('3702')
             self.processed_df['Species_A'].append('Arabidopsis thaliana')
@@ -226,6 +225,6 @@ class Scoring:
 
 if __name__ == '__main__':
     '''Test class'''
-    scoring = Scoring('AGL14&')
+    scoring = Scoring('AP1&CAL')
     df = scoring.process()
     df.to_excel('AG14&.xlsx', index=False)
