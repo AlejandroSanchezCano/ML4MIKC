@@ -24,7 +24,7 @@ Docs:       https://github.com/KaHIP/KaHIP
             https://pmc.ncbi.nlm.nih.gov/articles/PMC10939362/
 Author:     Alejandro Sánchez Cano
 Date:       26/06/2025
-Time:       
+Time:       2 min
 ===============================================================================
 """
 

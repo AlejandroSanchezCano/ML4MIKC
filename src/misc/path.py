@@ -30,3 +30,10 @@ PPI = DATA / 'PPI'
 DATABASES = DATA / 'Databases'
 BIOGRID = DATABASES / 'BioGRID'
 INTACT = DATABASES / 'IntAct'
+
+# Other directories
+CHONKY = Path('/home/asanchez/chonky')
+TOOLS = Path('/home/asanchez/tools')
+
+# TOOL directories
+ESMFOLD = TOOLS / 'ESMFold'
