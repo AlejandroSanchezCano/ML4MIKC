@@ -33,7 +33,7 @@ INTACT = DATABASES / 'IntAct'
 
 # Other directories
 CHONKY = Path('/home/asanchez/chonky')
-TOOLS = Path('/home/asanchez/tools')
+TOOLS = CHONKY / 'tools'
 
 # TOOL directories
 ESMFOLD = TOOLS / 'ESMFold'
