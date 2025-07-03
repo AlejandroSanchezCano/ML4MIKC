@@ -190,8 +190,9 @@ class PPI:
         Protein
             Protein object.
         '''
-        total = len(list(path.PPI.glob('*')))
-        for file_name in tqdm(path.PPI.iterdir(), total = total):
+        files = sorted(list(path.PPI.glob('*')))
+        total = len(files)
+        for file_name in tqdm(files, total=total):
             p1, p2 = file_name.stem.split('=')
             p1 = Protein(p1)
             p2 = Protein(p2)
@@ -242,4 +243,7 @@ class PPI:
         self.__dict__['p2'] = p2
 
 if __name__ == '__main__':
-    pass
+    ppi_files = sorted(list(path.PPI.glob('*')))
+    total = len(ppi_files)
+    for file_name in tqdm(ppi_files, total = total):
+        print(file_name)

@@ -136,8 +136,9 @@ class Protein:
         Protein
             Protein object.
         '''
-        total = len(list(path.PROTEIN.glob('*')))
-        for protein in tqdm(path.PROTEIN.iterdir(), total = total):
+        files = sorted(list(path.PROTEIN.glob('*')))
+        total = len(files)
+        for protein in tqdm(files, total=total):
             yield Protein(protein.stem)
     
     def pickle(self) -> None:
