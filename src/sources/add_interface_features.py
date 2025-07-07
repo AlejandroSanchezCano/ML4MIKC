@@ -69,10 +69,10 @@ def process(idx, struc):
 
 if __name__ == '__main__':
     task_id = int(os.getenv('SLURM_ARRAY_TASK_ID'))
-    logger.info(f"Processing task ID: {slurm_task_id}")
+    logger.info(f"Processing task ID: {task_id}")
     for idx, ppi in enumerate(PPI.iterate()):
-        if idx != slurm_task_id:
+        if idx != task_id:
             continue
-        process(slurm_task_id, ppi.esmfold['structure'])
+        process(task_id, ppi.esmfold['structure'])
         logger.info(ppi.interface_features)
         break
