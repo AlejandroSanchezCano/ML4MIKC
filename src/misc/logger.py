@@ -7,7 +7,7 @@ Outline:    Manage logging for the project. It includes a custom logger that
             src directory.
 Docs:       https://docs.python.org/3/library/logging.html
 Author:     Alejandro Sánchez Cano
-Date:       2024-10-02
+Date:       02/10/2024
 ===============================================================================
 """
 

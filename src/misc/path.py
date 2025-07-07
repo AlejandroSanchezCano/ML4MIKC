@@ -4,7 +4,7 @@ Title:      Path module
 Outline:    Important path variables for the project to avoid hardcoding them
             in each individual file.
 Author:     Alejandro Sánchez Cano
-Date:       2024-10-02
+Date:       02/10/2024
 ===============================================================================
 """
 

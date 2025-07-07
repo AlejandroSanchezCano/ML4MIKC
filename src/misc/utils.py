@@ -5,7 +5,7 @@ Outline:    Utility functions for general purposes:
                 - Pickle and unpickle objects.
 Docs:       https://docs.python.org/3/library/pickle.html
 Author:     Alejandro Sánchez Cano
-Date:       2024-10-02
+Date:       02/10/2024
 ===============================================================================
 """
 

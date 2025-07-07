@@ -1,6 +1,21 @@
 
 #known error with 54kjsdhfksh because of its weird structure
 # use performance class
+"""
+===============================================================================
+Title:      Random forest model on interface features
+Outline:    Interface features are used to train a random forest model to
+            predict the interation of MIKC PPIs using different splitting
+            strategies from more to less data leakage:
+            - Random split
+            - INTRA0-INTER
+            - INTRA1-INTER
+            - INTRA0-INTRA1
+Author:     Alejandro Sánchez Cano
+Date:       07/07/2025
+Time:       3 min
+===============================================================================
+"""
 
 # Built-in modules
 from collections import defaultdict
