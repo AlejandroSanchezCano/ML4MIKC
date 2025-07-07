@@ -64,7 +64,6 @@ cat <<EOF > "$SBATCH_SCRIPT"
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --output=%j.out
-#SBATCH --error=%j.err
 EOF
 
 # Add extra SBATCH arguments
