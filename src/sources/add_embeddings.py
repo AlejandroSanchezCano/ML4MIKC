@@ -10,9 +10,14 @@ Outline:    Use ESM2 to compute per-sequence embeddings for the proteins in the
             the per-sequence embeddings. All ESM2 models are used, except
             '15B', which is too big and leads to a disk quota error when 
             attempting download it.
+
+            CAUTION: Model loading adds many GB to the ~/.cache/torch
+            directory, where the ESM2 models are downloaded. Either we make 
+            sure to have enough space, or we clean them up after running this 
+            script.
 Author:     Alejandro Sánchez Cano
 Date:       01/07/2025
-Time:       3 min if models are already downloaded
+Time:       4 min (models already downloaded)
 ===============================================================================
 """
 

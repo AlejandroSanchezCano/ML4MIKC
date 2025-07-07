@@ -6,7 +6,7 @@ Outline:    Use InterProScan to annotate the domains of the proteins in the PPI
             request, so the proteins are processed in batches.
 Author:     Alejandro Sánchez Cano
 Date:       01/07/2025
-Time:       
+Time:       7 min
 ===============================================================================
 """
 

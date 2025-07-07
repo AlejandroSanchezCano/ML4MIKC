@@ -5,7 +5,7 @@ Outline:    Compute the distance maps for all PPI structures in the PPI
             database using PConPy.
 Author:     Alejandro Sánchez Cano
 Date:       30/06/2025
-Time:       
+Time:       1h only CA
 ===============================================================================
 """
 
@@ -27,14 +27,16 @@ MEASURES = [
 
 with tempfile.TemporaryDirectory() as tmp_dir:
     for idx, ppi in enumerate(PPI.iterate()):
+        # Initialize attribute
+        if not hasattr(ppi, 'distance_map'):
+            ppi.distance_map = {}
+        else:
+            continue
         # Save strcuture to a temporary file
         with open(f'{tmp_dir}/{idx}.pdb', 'w') as f:
-            f.write(ppi.structure)
+            f.write(ppi.esmfold['structure'])
         # Iterate over measures and distances
         for measure in MEASURES:
-            # Initialize attribute
-            if not hasattr(ppi, 'distance_map'):
-                ppi.distance_map = {}
             # Compute distance map
             pyconpy = PConPy(
                 map_type='dmap',
