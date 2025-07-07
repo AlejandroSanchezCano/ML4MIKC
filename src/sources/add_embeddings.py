@@ -46,5 +46,5 @@ for model in models:
         esm2.prepare_data(data)
         esm2.run_model()
         r, s = esm2.extract_representations()
-        protein.esm2_embeddings[model] = s
+        protein.esm2_embeddings[model] = r
         protein.pickle()
