@@ -217,7 +217,37 @@ class PPI:
         self.p1 = self.p1.__hash__()
         self.p2 = self.p2.__hash__()
         utils.pickle(data = self.__dict__, path = filepath)
-    
+
+    @staticmethod
+    def create_backup() -> None:
+        '''
+        Creates a backup of the PPI database by copying all files from the PPI 
+        folder to the PPI_BAKCUP folder. This is useful to avoid losing
+        information in case of accidental deletion or corruption of the PPI
+        database.
+        '''
+        for ppi in PPI.iterate():
+            ppi.p1 = ppi.p1.__hash__()
+            ppi.p2 = ppi.p2.__hash__()
+            backup_path = path.BACKUP / f'{ppi.__hash__()}.ppi'
+            utils.pickle(data = ppi.__dict__, path = backup_path)
+            
+
+    def restore_from_backup(self) -> None:
+        '''
+        Restores the PPI object from a backup file. The backup file is expected
+        to be in the PPI_BACKUP folder and have the same name as the PPI object.
+        This method is useful to recover a PPI object that has been deleted or
+        corrupted.
+        '''
+        file_stem = self.__hash__()
+        filepath = path.BACKUP / f'{file_stem}.ppi'
+        if not filepath.exists():
+            raise FileNotFoundError(f'No backup found for {file_stem}')
+        __dict__ = utils.unpickle(filepath)
+        for attribute, value in __dict__.items():
+            setattr(self, attribute, value)
+
     @property
     def p1(self) -> Protein:
     # ONLY SHOW P1 == PROTEIN WHEN USING THE P1 ATTRIBUTE. ELSE IT IS KEPT AS THE HASH

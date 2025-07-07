@@ -31,9 +31,10 @@ DATABASES = DATA / 'Databases'
 BIOGRID = DATABASES / 'BioGRID'
 INTACT = DATABASES / 'IntAct'
 
-# Other directories
+# Chonky directories
 CHONKY = Path('/home/asanchez/chonky')
 TOOLS = CHONKY / 'tools'
+BACKUP = CHONKY / 'backup'
 
 # TOOL directories
 ESMFOLD = TOOLS / 'ESMFold'
