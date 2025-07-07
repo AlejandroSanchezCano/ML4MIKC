@@ -2,13 +2,16 @@
 ===============================================================================
 Title:      Add interface features
 Outline:    Computes different interface features for the PPI structures in the
-            PPI database using CCP4 (SC and PISA) and custom methods.
+            PPI database using CCP4 (SC and PISA) and custom methods. It uses 
+            the --array option to parallelize the computation across multiple
+            jobs (i.e. CPUs), because parallization inside the same CPU is not
+            possible due to OOM errors.
 Author:     Alejandro Sánchez Cano
 Date:       01/07/2025
 Time:       3h excluding sc
-            60h incluong sc
+            60h including sc
             2h 30min with array job parallelization (40 PPIs/min)
-            The speed os limited to the number of concurrent jobs:
+            The speed is limited to the number of concurrent jobs:
             - rome partition: 128 CPU cores
             - genoa partition: 192 CPU cores
 ===============================================================================
