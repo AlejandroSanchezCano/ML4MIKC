@@ -59,9 +59,9 @@ for idx, ppi in enumerate(PPI.iterate()):
     # Add PAE
     ppi.esmfold['pae'] = Map(np.load(f"{tmp_dir}/{idx}.pae.npy"))
     # Add contact maps
-    ppi.esmfold['contact_maps'] = {}
+    ppi.esmfold['cm'] = {}
     for threshold in [6, 8, 10, 12]:
-        ppi.esmfold['contact_maps'][threshold] = Map(np.load(
+        ppi.esmfold['cm'][threshold] = Map(np.load(
             f"{tmp_dir}/{idx}.contacts{threshold}.npy"
         ))
     # Save PPI object

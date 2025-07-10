@@ -70,7 +70,7 @@ def process(idx, struc):
 if __name__ == '__main__':
     task_id = int(os.getenv('SLURM_ARRAY_TASK_ID'))
     logger.info(f"Processing task ID: {task_id}")
-    for idx, ppi in enumerate(PPI.iterate()):
+    for idx, ppi in enumerate(PPI.iterate('esmfold.structure')):
         if idx != task_id:
             continue
         process(task_id, ppi.esmfold['structure'])

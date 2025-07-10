@@ -14,11 +14,16 @@ from pathlib import Path
 # Path to the root of the project
 ROOT = Path('/home/asanchez/ML4MIKC')
 
-# First-order directories
-DATA = ROOT / 'data'
-SRC = ROOT / 'src'
+# Chonky directories
+CHONKY = Path('/home/asanchez/chonky')
+TOOLS = CHONKY / 'tools'
+BACKUP = CHONKY / 'backup'
 
-# High-order directories in DATA
+# TOOL directories
+ESMFOLD = TOOLS / 'ESMFold'
+
+# Data directories
+DATA = CHONKY / 'ML4MIKC'
 INTERACTORS = DATA / 'Interactors'
 NETWORKS = DATA / 'Networks'
 LITERATUREMINING = DATA / 'LiteratureMining'
@@ -30,11 +35,3 @@ PPI = DATA / 'PPI'
 DATABASES = DATA / 'Databases'
 BIOGRID = DATABASES / 'BioGRID'
 INTACT = DATABASES / 'IntAct'
-
-# Chonky directories
-CHONKY = Path('/home/asanchez/chonky')
-TOOLS = CHONKY / 'tools'
-BACKUP = CHONKY / 'backup'
-
-# TOOL directories
-ESMFOLD = TOOLS / 'ESMFold'

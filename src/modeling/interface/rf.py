@@ -30,10 +30,10 @@ from src.entities.ppi import PPI
 from src.misc.logger import logger
 
 # Load data
-ppis = [ppi for ppi in PPI.iterate()]
+ppis = [ppi for ppi in PPI.iterate('interface_features', 'partition', 'interaction', 'origin')]
 valid_ppis = []
 for idx, ppi in enumerate(ppis):
-    if not hasattr(ppi, 'interface_features'):
+    if ppi.interface_features is None:
         logger.warning(f"PPI {idx} does not have interface features. Skipping.")
     elif ppi.interact() != '?':
         valid_ppis.append(ppi)

@@ -26,12 +26,9 @@ MEASURES = [
 ]
 
 with tempfile.TemporaryDirectory() as tmp_dir:
-    for idx, ppi in enumerate(PPI.iterate()):
+    for idx, ppi in enumerate(PPI.iterate('esmfold.structure')):
         # Initialize attribute
-        if not hasattr(ppi, 'distance_map'):
-            ppi.distance_map = {}
-        else:
-            continue
+        ppi.distance_map = {}
         # Save strcuture to a temporary file
         with open(f'{tmp_dir}/{idx}.pdb', 'w') as f:
             f.write(ppi.esmfold['structure'])
