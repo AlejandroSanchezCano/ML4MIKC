@@ -13,7 +13,7 @@ Outline:    Interface features are used to train a random forest model to
             - INTRA0-INTRA1
 Author:     Alejandro Sánchez Cano
 Date:       07/07/2025
-Time:       3 min
+Time:       1 min
 ===============================================================================
 """
 
