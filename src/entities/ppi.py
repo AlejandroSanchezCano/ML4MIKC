@@ -157,6 +157,7 @@ class PPI:
         ----------
         *args : str
             Names of the arguments to be added to the PPI instances.
+            Some are always present by default.
 
         Returns
         -------
@@ -164,6 +165,7 @@ class PPI:
             List of PPI instances.
         '''
         # Utils functions
+        args = (*args, 'interaction', 'origin', 'partition')
         def instantiate(proteins: str) -> 'PPI':
             p1, p2 = proteins
             return PPI(p1, p2, *args)
