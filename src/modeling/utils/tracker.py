@@ -2,63 +2,69 @@
 ===============================================================================
 Title:      Tracker
 Outline:    Tracker class to track and plot metrics during training and 
-            evaluation.
+            evaluation. This allows for easy monitoring of model performance
+            during the training process.
 Author:     Alejandro Sánchez Cano
-Date:       2024-10-11
-Version:    2025-03-03
-License:    MIT
+Date:       15/07/2025
 ===============================================================================
 """
 
 # Third-party modules
+import pandas as pd
 import matplotlib.pyplot as plt
 
-class Tracker():
+# Custom modules
+from src.misc.logger import logger
 
-    def __init__(self):
-        # Initialize output directory
-        self.output_dir = None
-        # Initialize metrics
-        self.metrics = {
-            'learning_rate': [],
-            'train_loss': [],
-            'val_loss': [],
-            'train_bal_accuracy': [],
-            'val_bal_accuracy': [],
-            'train_f1': [],
-            'val_f1': [],
-            'train_mcc': [],
-            'val_mcc': []
-        }
+#TODO: pick up from checkpoint
+#TODO: improve plotting aesthetics
+#NOTE: this code my be substituted by wandb in the future
+
+class Tracker:
+
+    def __init__(self, output_dir: str = '.'):
+        self.output_dir = output_dir
+        self.metrics = pd.DataFrame()
+        self.model = None
 
     def track(self, **kwargs) -> None:
         '''Record metrics'''
-        # Update metrics
-        for key, value in kwargs.items():
-            self.metrics[key].append(value)
+        df = pd.DataFrame([kwargs])
+        self.metrics = pd.concat([self.metrics, df], ignore_index=True)
+        if self.metrics['val_loss'].min() == kwargs.get('val_loss', float('inf')):
+            self.model = kwargs.get('model', None)
+
+    def best_epoch(self) -> tuple[int, pd.Series]:
+        '''
+        Find best epoch based on validation loss and report the metrics
+
+        Returns
+        -------
+            best_epoch : int
+                The epoch with the best validation loss.
+            best_metrics : pd.Series
+                The metrics of the best epoch.
+        '''
+        if 'val_loss' not in self.metrics.columns:
+            raise ValueError("Validation loss not found in metrics.")
+        best_epoch = self.metrics['val_loss'].idxmin()
+        best_metrics = self.metrics.iloc[best_epoch]
+        logger.info(f"Best epoch: {best_epoch + 1}/{len(self.metrics)}")
+        logger.info("Metrics:")
+        for key, value in best_metrics.items():
+            logger.info(f"{key}: {value}")
+
+        return best_epoch, best_metrics
     
-    def plot(self, *metrics: str, output_dir: str) -> None:
-        '''
-        Decide which metrics to plot and save the plots.
-
-        Parameters
-        ----------
-        metrics : str
-            Metrics to plot
-        output_dir : str
-            Plotting output directory
-        '''
-        # Set output directory
-        self.output_dir = output_dir
-
-        # Plot metrics
-        if 'learning_rate' in metrics:
+    def plot(self) -> None:
+        '''Plot metrics based on the fields tracked'''
+        if any(col in self.metrics.columns for col in ['learning_rate', 'lr',]):
             self.__plot_learning_rate()
-        if 'losses' in metrics:
+        if any(col in self.metrics.columns for col in ['train_loss', 'val_loss']):
             self.__plot_losses()
-        if 'performance' in metrics:
+        if any(col in self.metrics.columns for col in ['train_bal_accuracy', 'val_bal_accuracy', 'train_f1', 'val_f1', 'train_mcc', 'val_mcc']):
             self.__plot_performance()
-    
+
     def __plot_learning_rate(self) -> None:
         '''Plot learning rate'''	
         for lr_parameter_group in zip(*self.metrics['learning_rate']):

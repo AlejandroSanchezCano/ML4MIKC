@@ -107,12 +107,15 @@ for epoch in tqdm(range(config['epochs'])):
     )
     # Early stopping
     early_stopping(test_results['loss'])
-    #if early_stopping.early_stop:
-    #    logger.info("Early stopping triggered!")
-    #    break
+    if early_stopping.early_stop:
+        logger.info("Early stopping triggered!")
+        break
+
+# Report training and performance
+best_epoch, best_metrics = tracker.best_epoch()
 
 # Plot
-tracker.plot('learning_rate', 'losses', 'performance', output_dir = '.')
+tracker.plot()
 test_performance.plot_confusion_matrix()
 test_performance.plot_roc_curve()
 test_performance.plot_calibration_curve(n_bins=15, strategy='quantile', model_name='CNN')
