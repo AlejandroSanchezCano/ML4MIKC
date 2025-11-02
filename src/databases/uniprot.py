@@ -1,3 +1,27 @@
+"""
+===============================================================================
+Title:      UniProt
+Outline:    UniProt class to represent a UniProt accession ID. It supports:
+            - UniProt API wrapper:
+                + Fetch metadata (taxon ID, TrEMBL/Swiss-Prot, primary and
+                  secondary accessions)
+                + Fetch sequence
+                + Fetch structure from AlphaFold DB
+            - InterPro API wrapper:
+                + Fetch start and end of domains from InterPro and its source
+                  databases: InterPro, CDD, CathGene3D, Profile, Prints, SMART,
+                  Prosite, PFAM, Panther, SSF, Hamap, Pirsf, and NCBIFam. For
+                  example:
+                  {
+                     'IPR002100': [(0, 50), (100, 150)],
+                     'PF00319': [(60, 120)]
+                  }
+Docs:       https://bioservices.readthedocs.io/en/main/references.html#bioservices.uniprot.UniProt
+            https://github.com/ProteinsWebTeam/interpro7-api
+Author:     Alejandro Sánchez Cano
+Date:       02/11/2025
+===============================================================================
+"""
 # Built-in modules
 import subprocess
 from collections import defaultdict
@@ -12,7 +36,6 @@ from src.misc.logger import logger
 class UniProtError(Exception):
     '''Custom exception for the UniProt class.'''
     pass
-
 
 class UniProt:
 
