@@ -25,9 +25,6 @@ import hashlib
 from pathlib import Path
 from dataclasses import dataclass, asdict, field
 
-# Third-party modules
-import checkHash
-
 # Custom modules
 from src.misc import utils
 
