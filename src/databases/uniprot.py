@@ -40,7 +40,7 @@ class UniProtError(Exception):
 class UniProt:
 
     # Initialize UniProt API
-    uniprot_api = UniProtAPI(verbose = False)
+    api = UniProtAPI(verbose = False)
 
     def __init__(self, accession: str):
         self.accession = accession
@@ -72,7 +72,7 @@ class UniProt:
             Taxon ID, section, primary accession, and secondary accessions.
         '''
         # Use UniProt API
-        entry_json = UniProt.uniprot_api.retrieve(
+        entry_json = self.__class__.api.retrieve(
             uniprot_id = self.accession,
             frmt = 'json',
             database = 'uniprot'
@@ -105,7 +105,7 @@ class UniProt:
             Sequence of the UniProt ID.
         '''
         # Fetch sequence
-        fasta = UniProt.uniprot_api.get_fasta(self.accession)
+        fasta = self.__class__.api.get_fasta(self.accession)
         sequence = fasta.split('\n', 1)[1].replace('\n', '')
 
         # Logging
