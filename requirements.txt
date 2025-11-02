@@ -1,0 +1,7 @@
+# Aliases
+
+# Conda environment
+conda create -n ml4mikc python=3.10 -y
+conda activate ml4mikc
+pip install requests                  # 2.32.4
+pip install tqdm                      # 4.67.1

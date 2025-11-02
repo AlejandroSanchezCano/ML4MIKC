@@ -13,5 +13,6 @@ from pathlib import Path
 
 # Top directories
 CHONKY = Path('/home/asanchez/chonky')
-ROOT = CHONKY / 'ML4MIKC'
+PROJECT = CHONKY / 'ML4MIKC'
 TOOLS = CHONKY / 'tools'
+DATA = CHONKY / 'data'
