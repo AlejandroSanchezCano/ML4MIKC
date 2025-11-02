@@ -22,6 +22,7 @@ Date:       02/11/2025
 # Built-in modules
 import pprint
 import hashlib
+from pathlib import Path
 from dataclasses import dataclass, asdict, field
 
 # Third-party modules
@@ -30,12 +31,10 @@ import checkHash
 # Custom modules
 from src.misc import utils
 
-# TODO: Add initialization by sequence hash and hash (perhaps use __post_init_ method)
-
 @dataclass(slots=True)
 class Protein:
     # Compulsory attribute
-    seq: str
+    seq: str | Path
 
     # Optional attributes
     uniprot: str = None
@@ -45,6 +44,16 @@ class Protein:
     primary_accession: str = None
     secondary_accessions: list[str] = field(default_factory=list)
     interpro_domains: dict[str, tuple[int, int]] = field(default_factory=dict)
+
+    def __post_init__(self):
+        '''
+        Intantiate from file path with hashed sequence as name.
+        '''
+        if isinstance(self.seq, Path) or '/' in self.seq:
+            file_path = self.seq
+            content = utils.unpickle(file_path)
+            for key, value in content.items():
+                setattr(self, key, value)
 
     def pickle(self, dir: str = '.') -> None:
         '''
@@ -59,14 +68,10 @@ class Protein:
         '''
         hashed_seq = hashlib.md5(self.seq.encode()).hexdigest()
         filename = f'{hashed_seq}.pkl'
-        save_path = f'{dir}/{filename}'
+        save_path = Path(dir) / filename
         utils.pickle(asdict(self), save_path)
 
 
 if __name__ == "__main__":
-    p1 = Protein(seq="MKTAYIAKQRQISFVKSHFSRQDILD")
-    p2 = Protein(seq="MKTAYIAKQRQISFVKSHFSRQDILD", uniprot="P12345")
-    print(p1)
-    print(p2)
-    
-    p2.pickle(".")
+    p1 = Protein(seq = '/home/asanchez/chonky/data/MIKC_proteins/0a0e442c05d2df598c01f13ea6121d59.pkl')
+    pprint.pprint(p1)
