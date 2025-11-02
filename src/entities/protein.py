@@ -4,7 +4,7 @@ Title:      Protein
 Outline:    Protein dataclass that represents a protein entity.
             Attributes
             ----------
-            - seq: Protein sequence.
+            - seq: Protein sequence (or file path to pickled Protein object).
             - uniprot: UniProt ID.
             - taxon: Taxon ID (e.g. 9606).
             - section: 'TrEMBL' or 'Swiss-Prot'.
