@@ -116,6 +116,7 @@ class InterPro:
         '''
         Use InterPro API to retrieve necessary the UniProt IDs of the proteins 
         belonging to the self.accession InterPro ID.
+        It cannot be parallized due to API pagination.
 
         Parameters
         ----------
