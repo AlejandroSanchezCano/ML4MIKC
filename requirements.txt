@@ -6,3 +6,4 @@ conda activate ml4mikc
 pip install requests                  # 2.32.4
 pip install tqdm                      # 4.67.1
 pip install bioservices               # 1.12.1
+pip install aiohttp                   # 3.13.2

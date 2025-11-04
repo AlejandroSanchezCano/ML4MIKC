@@ -13,10 +13,12 @@ Time:       3h 20min but depends a lot on API speed and benevolence
 """
 
 # Built-in modules
+import asyncio
 import concurrent.futures
 
 # Third-party modules
 from tqdm import tqdm
+from tqdm.asyncio import tqdm_asyncio
 
 # Custom modules
 from src.misc import path
@@ -26,32 +28,26 @@ from src.entities.protein import Protein
 from src.entities.collection import Collection
 logger.setLevel(20)
 
-# Iterate over Protein objects
-collection = Collection(dir = path.MIKC_PROTS, class_type = 'Protein')
-proteins = [protein for protein in collection]
+async def main():
+    # Limit concurrent requests
+    semaphore = asyncio.Semaphore(10)  
 
-def add_domains(protein: Protein) -> dict[str, tuple[int, int, str]]:
-    '''
-    Fetches InterPro domains for a given UniProt accessions. And adds them to 
-    the corresponding Protein object.
+    # Gather tasks
+    collection = Collection(dir = path.MIKC_PROTS, class_type = Protein)
+    proteins = [protein for protein in collection]
+    uniprots = [UniProt(protein.uniprot) for protein in proteins]
+    tasks = [uniprot.interpro_domains(semaphore) for uniprot in uniprots]
 
-    Parameters
-    ----------
-    protein : Protein
-        Protein object.
+    # Collect fetched domains
+    results = {}
+    for coroutine in tqdm_asyncio.as_completed(tasks, total=len(tasks)):
+        uniprot_accession, domains = await coroutine
+        results[uniprot_accession] = domains
 
-    Returns
-    -------
-    dict[str, tuple[int, int, str]]
-        Mapping of domain ID to (start, end, description).
-    '''
-    if not protein.interpro_domains:
-        uniprot = UniProt(protein.uniprot)
-        domains = uniprot.interpro_domains()
-        protein.interpro_domains = dict(domains) # Defaultdicts are not compatible with dataclasses.asdict
+    # Save domains in Protein objects
+    for protein in tqdm(proteins, desc='Saving protein objects with domains'):
+        protein.interpro_domains = dict(results[protein.uniprot]) # Defaultdicts are not compatible with dataclasses.asdict
         protein.pickle(dir = path.MIKC_PROTS)
 
-# Multithreading
-num_threads = 7
-with concurrent.futures.ThreadPoolExecutor(max_workers = num_threads) as executor:
-    list(tqdm(executor.map(add_domains, proteins), total=len(proteins)))
+# Run event loop
+results = asyncio.run(main())

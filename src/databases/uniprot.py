@@ -24,11 +24,12 @@ Date:       02/11/2025
 """
 
 # Built-in modules
+import asyncio
 import subprocess
 from collections import defaultdict
 
 # Third-party modules
-import requests
+import aiohttp
 from bioservices.uniprot import UniProt as UniProtAPI
 
 # Custom modules
@@ -134,74 +135,75 @@ class UniProt:
 
         # Only save the non-empty responses (> 200 characters)
         return response if status == 200 else ''         
-    
-    def interpro_domains(self) -> dict[str, list[tuple[int, int]]]:
-        '''
-        Uses the InterPro API to fetch the domains of a UniProt ID in 
-        the InterPro database from a series of source databases like 
-        InterPro, PFAM, etc. The response is carefully parsed and the 
-        domains are stored in a dictionary with the accession as key 
-        and a list of tuples with the start and end of the domain as 
-        value.
 
-        Returns
-        -------
-        dict[str, list[tuple[int, int]]]
-            Dictionary with the accession as key and a list of tuples
-            with the start and end of the domain as value.
-        '''
-        # Logging
-        logger.info(f'Processing {self.accession}...')
+    async def _fetch_entry(
+        self,
+        semaphore: asyncio.Semaphore, 
+        session: aiohttp.ClientSession, 
+        url: str
+        ) -> dict:
+        async with semaphore:
+            async with session.get(url) as response:
+                response.raise_for_status()
+                return await response.json()
 
-        # Dictionary to store domains
-        domains = defaultdict(list)
-
+    async def _interpro_urls(
+        self, 
+        semaphore: asyncio.Semaphore,
+        session: aiohttp.ClientSession
+        ) -> list[dict]:
         # Source databases to search for domains
         source_databases = [
             'interpro', 'cdd', 'cathgene3d', 'profile', 'prints', 'smart',
             'prosite', 'pfam', 'panther', 'ssf', 'hamap', 'pirsf', 'ncbifam'
             ]
-        
-        # Iterate over source databases
-        for database in source_databases:
-            # Make request
-            url = f'https://www.ebi.ac.uk/interpro/api/entry/{database}/protein/uniprot/{self.accession}'
-            logger.debug(f'Processing {database}...')
-            logger.debug(f'URL: {url}')
-            request = requests.get(url)
-            status = request.status_code
-            match status:
-                case 200: json = request.json()
-                case 204: json = {}
-                case _:
-                    raise ValueError(f'Unexpected status code {status} for {url}')
+        # Generate URLs
+        url = 'https://www.ebi.ac.uk/interpro/api/entry/{database}/protein/uniprot/{uniprot}'
+        urls = [
+            url.format(database=database, uniprot=self.accession)
+            for database in source_databases
+        ]
+        # Gather tasks
+        tasks = [self._fetch_entry(semaphore, session, url) for url in urls]
+        return await asyncio.gather(*tasks)
 
-            # Empty response
-            if not json:
-                continue
+    async def interpro_domains(
+        self, 
+        semaphore: asyncio.Semaphore
+        ) -> dict[str, list[tuple[int, int]]]:
+        # Logging
+        logger.debug(f'Processing {self.accession}...')
 
-            # Pagination not implemented
-            assert json['next'] is None, 'Pagination needs to be implemented'
+        # Dictionary to store domains
+        domains = defaultdict(list)
 
-            # Navigate JSON response
-            for result in json['results']:
-                accession = result['metadata']['accession']
-                subdatabases = result['metadata']['member_databases']
-                subdatabases = subdatabases.keys() if subdatabases else []
-                assert all(subdatabase in source_databases for subdatabase in subdatabases), f'Unknown source database in {subdatabases} for {self.accession}'
-                assert len(result['proteins']) == 1, f'Multiple proteins found in {accession} for {self.accession}'
-                for location in result['proteins'][0]['entry_protein_locations']:
-                    for fragment in location['fragments']:
-                        
-                        # Extract domain start and end
-                        start = int(fragment['start']) - 1
-                        end = int(fragment['end']) - 1
-                        logger.debug(f'{self.accession} {result["metadata"]["accession"]} {start}-{end}')
-                        
-                        # Store domain
-                        domains[accession] += [(start, end)]
-        
-        return domains
+        # Async HTTP requests
+        async with aiohttp.ClientSession() as session:
+            results = await self._interpro_urls(semaphore, session)
+            for json in results:
+
+                # Empty response
+                if not json:
+                    continue
+
+                # Pagination not implemented
+                assert json['next'] is None, 'Fetched JSON has pagination, but I did not implement how to deal with it yet'
+
+                # Navigate JSON response
+                for result in json['results']:
+                    accession = result['metadata']['accession']
+                    for location in result['proteins'][0]['entry_protein_locations']:
+                        for fragment in location['fragments']:
+
+                            # Extract domain start and end
+                            start = int(fragment['start']) - 1
+                            end = int(fragment['end']) - 1
+                            logger.debug(f'{self.accession} {result["metadata"]["accession"]} {start}-{end}')
+
+                            # Store domain
+                            domains[accession] += [(start, end)]
+
+        return self.accession, domains
 
 if __name__ == '__main__':
     '''Test class'''
