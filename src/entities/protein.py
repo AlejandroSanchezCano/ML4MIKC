@@ -14,6 +14,8 @@ Outline:    Protein dataclass that represents a protein entity.
             - interpro_domains: InterPro sources mapped to their start and end
                 location in the protein sequence, e.g. {'IPR002100':[(0,20), 
                 (30,50)], 'IPR003000':[(60,80)]}
+            - esm2_embeddings: ESM2 per-residue embeddings mapped by model
+                name, e.g. {'650M': [...], '3B': [...]}
 Author:     Alejandro Sánchez Cano
 Date:       02/11/2025
 ===============================================================================
@@ -41,6 +43,7 @@ class Protein:
     primary_accession: str = None
     secondary_accessions: list[str] = field(default_factory=list)
     interpro_domains: dict[str, tuple[int, int]] = field(default_factory=dict)
+    esm2_embeddings: dict[str, list[float]] = field(default_factory=dict)
 
     def __post_init__(self):
         '''

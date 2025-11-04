@@ -8,3 +8,5 @@ pip install tqdm                      # 4.67.1
 pip install bioservices               # 1.12.1
 pip install aiohttp                   # 3.13.2
 pip install seaborn                   # 0.13.2
+pip install fair-esm                  # 2.0.0
+pip install torch                     # 2.9.0 (CUDA 12.8)
