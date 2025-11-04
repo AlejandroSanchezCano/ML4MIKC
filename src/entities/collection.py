@@ -41,7 +41,7 @@ class Collection:
 
     def _load_items(self):
         items = []
-        files = sorted(list(self.dir.glob('*')))[:1000]
+        files = sorted(list(self.dir.glob('*')))
         logger.info(f'Unpickling {len(files)} {self.class_type.__name__} objects from {self.dir}...')
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.num_threads) as executor:
             for result in tqdm(executor.map(self._instantiate, files), total=len(files)):
