@@ -23,6 +23,7 @@ from tqdm import tqdm
 # Custom modules
 from esm2 import ESM2
 from src.misc import path
+from src.misc.logger import logger
 from src.entities.collection import ProteinCollection
 
 # Choose ESM2 models
