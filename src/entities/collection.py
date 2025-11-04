@@ -42,9 +42,12 @@ class Collection:
     def _load_items(self):
         items = []
         files = sorted(list(self.dir.glob('*')))
-        logger.info(f'Unpickling {len(files)} {self.class_type.__name__} objects from {self.dir}...')
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.num_threads) as executor:
-            for result in tqdm(executor.map(self._instantiate, files), total=len(files)):
+            for result in tqdm(
+                executor.map(self._instantiate, files), 
+                total=len(files),
+                desc=f'Unpickling {len(files)} {self.class_type.__name__}'
+                ):
                 items.append(result)
 
         return items
@@ -67,7 +70,7 @@ class Collection:
         return obj
 
     def __iter__(self):
-        return iter(self.items)
+        return iter(tqdm(self.items, desc=f'Iterating over {self.class_type.__name__} collection'))
 
 
 class ProteinCollection(Collection):
@@ -107,7 +110,7 @@ class ProteinCollection(Collection):
         with out_path.open('w') as f:
             for protein in self.items:
                 values = [str(getattr(protein, attr)) for attr in header_attributes]
-                header = ' | '.join(values)
+                header = '|'.join(values)
                 f.write(f'>{header}\n')
                 f.write(f'{protein.seq}\n')
 
@@ -140,7 +143,7 @@ class ProteinCollection(Collection):
             with out_path.open('w') as f:
                 for protein in proteins:
                     values = [str(getattr(protein, attr)) for attr in header_attributes]
-                    header = ' | '.join(values)
+                    header = '|'.join(values)
                     f.write(f'>{header}\n')
                     f.write(f'{protein.seq}\n')
 

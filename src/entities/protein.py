@@ -44,6 +44,7 @@ class Protein:
     secondary_accessions: list[str] = field(default_factory=list)
     interpro_domains: dict[str, tuple[int, int]] = field(default_factory=dict)
     esm2_embeddings: dict[str, list[float]] = field(default_factory=dict)
+    closest_arabidopsis: str = None
 
     def __post_init__(self):
         '''

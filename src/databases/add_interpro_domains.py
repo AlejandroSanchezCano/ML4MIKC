@@ -42,7 +42,11 @@ async def main():
 
     # Collect fetched domains
     results = {}
-    for coroutine in tqdm_asyncio.as_completed(tasks, total=len(tasks)):
+    for coroutine in tqdm_asyncio.as_completed(
+        tasks, 
+        total=len(tasks),
+        desc='Fetching InterPro domains'
+        ):
         uniprot_accession, domains = await coroutine
         results[uniprot_accession] = domains
 
