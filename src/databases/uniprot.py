@@ -142,6 +142,23 @@ class UniProt:
         session: aiohttp.ClientSession, 
         url: str
         ) -> dict:
+        '''
+        Helper coroutine to fetch an InterPro API entry asynchronously.
+
+        Parameters
+        ----------
+        semaphore : asyncio.Semaphore
+            Semaphore to limit concurrent requests.
+        session : aiohttp.ClientSession
+            HTTP session to use for the request.
+        url : str
+            URL of the InterPro API entry to fetch.
+
+        Returns
+        -------
+        dict
+            JSON response from the InterPro API.
+        '''
         async with semaphore:
             async with session.get(url) as response:
                 response.raise_for_status()
@@ -152,6 +169,21 @@ class UniProt:
         semaphore: asyncio.Semaphore,
         session: aiohttp.ClientSession
         ) -> list[dict]:
+        '''
+        Helper coroutine to generate InterPro API URLs and fetch their entries.
+
+        Parameters
+        ----------
+        semaphore : asyncio.Semaphore
+            Semaphore to limit concurrent requests.
+        session : aiohttp.ClientSession
+            HTTP session to use for the request.
+
+        Returns
+        -------
+        list[dict]
+            List of JSON responses from the InterPro API.
+        '''
         # Source databases to search for domains
         source_databases = [
             'interpro', 'cdd', 'cathgene3d', 'profile', 'prints', 'smart',
@@ -171,6 +203,20 @@ class UniProt:
         self, 
         semaphore: asyncio.Semaphore
         ) -> dict[str, list[tuple[int, int]]]:
+        '''
+        Fetch InterPro domains for a UniProt accession.
+
+        Parameters
+        ----------
+        semaphore : asyncio.Semaphore
+            Semaphore to limit concurrent requests.
+
+        Returns
+        -------
+        dict[str, list[tuple[int, int]]]
+            Dictionary mapping domain accessions to lists of (start, end)
+            tuples.
+        '''
         # Logging
         logger.debug(f'Processing {self.accession}...')
 
@@ -211,9 +257,8 @@ if __name__ == '__main__':
     print(uniprot.fetch_metadata())
     print(uniprot.fetch_sequence())
     print(uniprot.fetch_structure())
-    print(uniprot.interpro_domains())
+    print(asyncio.run(uniprot.interpro_domains(asyncio.Semaphore(1))))
     uniprot = UniProt('A0A2H5NPF5') # Inactive UniProt ID -> raises UniProtError
     print(uniprot.fetch_metadata())
     print(uniprot.fetch_sequence())
     print(uniprot.fetch_structure())
-    print(uniprot.interpro_domains())

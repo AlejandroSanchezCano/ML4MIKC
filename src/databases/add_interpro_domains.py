@@ -4,11 +4,10 @@ Title:      Find protein domains in InterPro
 Outline:    Uses the UniProt class to fetch from the InterPro API the 
             InterPro domains of MIKC proteins using their UniProt IDs. The 
             obtained domains are stored in a Protein object and pickled.
-            Multithreading is implemented to speed up the process, and it can
-            take up from 3h to 8h, depending on the API speed and benevolence.
+            Coroutines with asyncio are implemented to speed up the process.
 Author:     Alejandro Sánchez Cano
-Date:       02/10/2024
-Time:       3h 20min but depends a lot on API speed and benevolence
+Date:       04/11/2025
+Time:       20 min
 ===============================================================================
 """
 
@@ -29,6 +28,9 @@ from src.entities.collection import Collection
 logger.setLevel(20)
 
 async def main():
+    '''
+    Function that wraps main functionality.
+    '''
     # Limit concurrent requests
     semaphore = asyncio.Semaphore(10)  
 
