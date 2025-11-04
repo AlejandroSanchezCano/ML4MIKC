@@ -51,7 +51,8 @@ for model in models:
         try:
             esm2.prepare_data(data)
         except ValueError as e:
-            logger.error(f'Error computing {model} embeddings for {protein.accession} due to sequence length ({len(protein.seq)}): {e}')
+            logger.error(f'Error computing {model} embeddings for {protein.uniprot} due to sequence length ({len(protein.seq)}): {e}')
+            continue
         esm2.run_model()
         r, s = esm2.extract_representations()
         protein.esm2_embeddings[model] = r
