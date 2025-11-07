@@ -84,6 +84,7 @@ class ProteinCollection(Collection):
         '''
         Prints and plots a report of the sequences in the collection.
         '''
+        # Lazy imports
         import seaborn as sns
         from matplotlib import pyplot as plt
         # Calculate lengths
