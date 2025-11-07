@@ -17,14 +17,16 @@ from collections import defaultdict
 
 # Third-party modules
 from tqdm import tqdm
-import seaborn as sns
-from matplotlib import pyplot as plt
 
 # Custom modules
 from src.misc import path
 from src.misc import utils
 from src.misc.logger import logger
 from src.entities.protein import Protein
+
+# Lazy modules
+#import seaborn as sns
+#from matplotlib import pyplot as plt
 
 class Collection:
     
@@ -41,7 +43,7 @@ class Collection:
 
     def _load_items(self):
         items = []
-        files = sorted(list(self.dir.glob('*')))
+        files = sorted(list(self.dir.glob('*')))[:1000] # limit to 1000 for testing
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.num_threads) as executor:
             for result in tqdm(
                 executor.map(self._instantiate, files), 
@@ -82,6 +84,8 @@ class ProteinCollection(Collection):
         '''
         Prints and plots a report of the sequences in the collection.
         '''
+        import seaborn as sns
+        from matplotlib import pyplot as plt
         # Calculate lengths
         lengths = [len(protein.seq) for protein in self.items]
         # Logging
