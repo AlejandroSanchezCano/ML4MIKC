@@ -3,7 +3,7 @@
 Title:      Find protein domains in InterPro
 Outline:    Uses the UniProt class to fetch from the InterPro API the 
             InterPro domains of MIKC proteins using their UniProt IDs. The 
-            obtained domains are stored in a Protein object and pickled.
+            obtained domains are stored in a Protein object and saved.
             Coroutines with asyncio are implemented to speed up the process.
 Author:     Alejandro Sánchez Cano
 Date:       04/11/2025

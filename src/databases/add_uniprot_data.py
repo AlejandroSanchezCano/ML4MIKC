@@ -3,7 +3,10 @@
 Title:      Add UniProt data to Protein objects
 Outline:    Uses the UniProt class to fetch the metadata, sequence, (and
             structure) of MIKC proteins using their UniProt IDs. The data is 
-            stored in the Protein objects and pickled.
+            stored in the Protein objects and saved.
+            Some UniProt accessions are inactive and therefore skipped.
+            Also, accessions with identical sequence and taxon are considered
+            redundant and only one of them is kept (preferentially Swiss-Prot).
 Author:     Alejandro Sánchez Cano
 Date:       02/10/2024
 Time:       3h 30min
