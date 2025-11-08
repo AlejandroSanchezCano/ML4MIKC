@@ -15,7 +15,6 @@ from pathlib import Path
 CHONKY = Path('/home/asanchez/chonky')
 PROJECT = CHONKY / 'ML4MIKC'
 TOOLS = CHONKY / 'tools'
-DATA = CHONKY / 'data'
 
 # Data directories
-MIKC_PROTS = DATA / 'MIKC_proteins'
+DATA = PROJECT / 'data'

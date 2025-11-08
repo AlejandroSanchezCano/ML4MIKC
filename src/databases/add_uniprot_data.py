@@ -6,7 +6,7 @@ Outline:    Uses the UniProt class to fetch the metadata, sequence, (and
             stored in the Protein objects and pickled.
 Author:     Alejandro Sánchez Cano
 Date:       02/10/2024
-Time:       3h
+Time:       3h 30min
 ===============================================================================
 """
 
@@ -17,8 +17,10 @@ from tqdm import tqdm
 from src.misc import path
 from src.misc.logger import logger
 from src.entities.protein import Protein
+from src.entities.collection import ProteinCollection
 from src.databases.uniprot import UniProt, UniProtError
 logger.setLevel(20)
+logger.info('Importing modules completed')
 
 # Load MIKC UniProt accessions
 mikc_uniprots = []
@@ -28,7 +30,8 @@ with open(file, 'r') as handle:
         mikc_uniprots.append(line.strip())
 logger.info(f'{len(mikc_uniprots)} MIKC UniProt accessions loaded')
 
-# Iterate over UniProt accessions
+# Retrieve data per UniProt accession
+proteins = []
 for uniprot in tqdm(mikc_uniprots, desc="Fetching UniProt data"):
 
     # Logging
@@ -46,7 +49,7 @@ for uniprot in tqdm(mikc_uniprots, desc="Fetching UniProt data"):
         logger.warning(f'{uniprot.accession} is inactive, skipping...')
         continue
 
-    # Create Protein object
+    # Create and append Protein object
     protein = Protein(
         seq = seq,
         uniprot = uniprot.accession,
@@ -55,12 +58,13 @@ for uniprot in tqdm(mikc_uniprots, desc="Fetching UniProt data"):
         primary_accession = primary_accession,
         secondary_accessions = secondary_accessions
         )
-    
-    # Save Protein object
-    save_dir = path.DATA / 'MIKC_proteins'
-    protein.pickle(dir = save_dir)
+    proteins.append(protein)
+
+# Save Protein objects
+file_path = path.DATA / 'mikc_proteins.h5'
+collection = ProteinCollection(file_path=file_path, items=proteins)
+collection.to_hdf5()
 
 # Logging
-n_prots = len(list(save_dir.glob('*')))
-logger.info(f'{n_prots} MIKC Protein objects saved')
-logger.info(f'{len(mikc_uniprots) - n_prots} inactive UniProt accessions skipped')
+logger.info(f'{len(proteins)} MIKC Protein objects saved')
+logger.info(f'{len(mikc_uniprots) - len(proteins)} inactive UniProt accessions skipped')

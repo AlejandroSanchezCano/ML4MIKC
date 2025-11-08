@@ -11,16 +11,19 @@ Date:       02/11/2025
 """
 
 # Built-in modules
+import json
 from pathlib import Path
 import concurrent.futures
+from abc import ABC, abstractmethod
 from collections import defaultdict
 
 # Third-party modules
+import h5py
+import numpy as np
 from tqdm import tqdm
 
 # Custom modules
 from src.misc import path
-from src.misc import utils
 from src.misc.logger import logger
 from src.entities.protein import Protein
 
@@ -28,57 +31,100 @@ from src.entities.protein import Protein
 #import seaborn as sns
 #from matplotlib import pyplot as plt
 
-class Collection:
-    
+class Collection(ABC):
+
+    @abstractmethod
     def __init__(
         self, 
-        dir: str | Path, 
-        class_type: type, 
-        num_threads: int = 50
+        file_path: str | Path | None = None, 
+        items: list | None = None
         ):
-        self.dir = Path(dir)
-        self.class_type = class_type
-        self.num_threads = num_threads
-        self.items = self._load_items()
+        pass
 
-    def _load_items(self):
-        items = []
-        files = sorted(list(self.dir.glob('*')))[:1000] # limit to 1000 for testing
-        with concurrent.futures.ThreadPoolExecutor(max_workers=self.num_threads) as executor:
-            for result in tqdm(
-                executor.map(self._instantiate, files), 
-                total=len(files),
-                desc=f'Unpickling {len(files)} {self.class_type.__name__}'
-                ):
-                items.append(result)
-
-        return items
-
-    def _instantiate(self, file_path: Path):
-        '''
-        Instantiates an object of the specified class_type.
-
-        Parameters
-        ----------
-        file_path : Path
-            Object file path.
-
-        Returns
-        -------
-        object
-            Instantiated object of the specified class_type.
-        '''
-        obj = self.class_type(file_path)
-        return obj
-
+    @abstractmethod
     def __iter__(self):
-        return iter(tqdm(self.items, desc=f'Iterating over {self.class_type.__name__} collection'))
+        pass 
 
+    @abstractmethod
+    def to_hdf5(self) -> None:
+        pass
 
 class ProteinCollection(Collection):
     
-    def __init__(self, dir: str | Path):
-        super().__init__(dir, class_type=Protein)
+    def __init__(
+        self, 
+        file_path: str | Path | None = None, 
+        items: list | None = None
+        ):
+        self.file_path = Path(file_path) if file_path else None
+        self.proteins = items
+
+    def __iter__(self):
+        # Already loaded
+        if self.proteins is not None:
+            return iter(tqdm(self.proteins), desc='Iterating over Protein collection')
+        # Load from HDF5
+        with h5py.File(self.file_path, 'r') as file:
+            seq_array = file['seq'][:]
+            uniprot_array = file['uniprot'][:]
+            taxon_array = file['taxon'][:]
+            section_array = file['section'][:]
+            primary_accession_array = file['primary_accession'][:]
+            secondary_accessions_array = file['secondary_accessions'][:]
+        
+        # Yield Protein objects
+        for idx in tqdm(range(len(seq_array)), desc='Loading Protein collection from HDF5'):
+            protein = Protein(
+                seq = seq_array[idx].decode('utf-8'),
+                uniprot = uniprot_array[idx].decode('utf-8'),
+                taxon = int(taxon_array[idx]),
+                section = section_array[idx].decode('utf-8'),
+                primary_accession = primary_accession_array[idx].decode('utf-8'),
+                secondary_accessions = [string.decode('utf-8') for string in secondary_accessions_array[idx]]
+            )
+            yield protein
+
+    def to_hdf5(self) -> None:
+        # Create HDF5 file
+        with h5py.File(self.file_path, 'w') as file:
+            # Iterate over attributes
+            attributes = self.proteins[0].__dataclass_fields__.keys()
+            for attr in attributes:
+                # Skip attributes with all default values
+                all_default = all(getattr(protein, attr) in (None, {}, []) for protein in self.proteins)
+                if all_default: continue
+                # Save non-default attributes
+                match attr:
+                    # Handle string attributes
+                    case 'seq' | 'uniprot' | 'section' | 'primary_accession' | 'closest_arabidopsis':
+                        dtype = h5py.string_dtype(encoding='utf-8')
+                        array = np.array([getattr(protein, attr) for protein in self.proteins], dtype=dtype)
+                        file.create_dataset(attr, data=array, compression="gzip", compression_opts=4, chunks=True)
+                    # Handle integer attributes
+                    case 'taxon':
+                        dtype = np.int32
+                        array = np.array([getattr(protein, attr) for protein in self.proteins], dtype=dtype)
+                        file.create_dataset(attr, data=array, compression="gzip", compression_opts=4, chunks=True)
+                    # Handle list of strings attributes
+                    case 'secondary_accessions':
+                        lst = [protein.secondary_accessions for protein in self.proteins]
+                        dtype = h5py.vlen_dtype(h5py.string_dtype(encoding='utf-8'))
+                        lst = [np.array(sublist, dtype=dtype) for sublist in lst]
+                        array = np.array(lst, dtype=dtype)
+                        file.create_dataset(attr, data=array, compression="gzip", compression_opts=4, chunks=True)
+                    # Handle dictionary attributes
+                    case 'interpro_domains':
+                        lst = [json.dumps(protein.interpro_domains) for protein in self.proteins]
+                        dtype = h5py.string_dtype(encoding='utf-8')
+                        array = np.array(lst, dtype=dtype)
+                        file.create_dataset(attr, data=array, compression="gzip", compression_opts=4, chunks=True)
+                    # Handle special attributes
+                    case 'esm2_embeddings': 
+                        pass
+                        # THIS WILL CHANGE!
+                        #group = file.create_group('650M')
+                        #array = np.random.rand(30, 200, 1280).astype(np.float32)
+                        #group.create_dataset(attr, data=array, compression="gzip", compression_opts=4, chunks=True)
 
     def sequence_report(self) -> None:
         '''
@@ -153,8 +199,5 @@ class ProteinCollection(Collection):
                     f.write(f'{protein.seq}\n')
 
 if __name__ == "__main__":
-    collection = ProteinCollection(dir = path.MIKC_PROTS)
-    for item in collection:
-        pass
-    collection.fastas_per_species('lol', ['uniprot', 'taxon', ])
-    collection.sequence_report()
+    collection = ProteinCollection(file_path = path.DATA / 'mikc_proteins.h5')
+    prots = [p for p in collection]
