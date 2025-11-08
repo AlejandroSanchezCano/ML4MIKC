@@ -44,6 +44,9 @@ class Collection(ABC):
     @abstractmethod
     def __iter__(self):
         pass 
+    
+    def __contains__(self, item) -> bool:
+        return any(x == item for x in self)
 
     @abstractmethod
     def to_hdf5(self) -> None:
@@ -57,12 +60,14 @@ class ProteinCollection(Collection):
         items: list | None = None
         ):
         self.file_path = Path(file_path) if file_path else None
-        self.proteins = items
+        self.proteins = items if items else []
 
     def __iter__(self):
         # Already loaded
-        if self.proteins is not None:
-            return iter(tqdm(self.proteins), desc='Iterating over Protein collection')
+        if self.proteins:
+            for protein in tqdm(self.proteins, desc='Iterating over Protein collection'):
+                yield protein
+
         # Load from HDF5
         with h5py.File(self.file_path, 'r') as file:
             seq_array = file['seq'][:]
@@ -82,6 +87,7 @@ class ProteinCollection(Collection):
                 primary_accession = primary_accession_array[idx].decode('utf-8'),
                 secondary_accessions = [string.decode('utf-8') for string in secondary_accessions_array[idx]]
             )
+            self.proteins.append(protein)
             yield protein
 
     def to_hdf5(self) -> None:

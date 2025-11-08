@@ -38,3 +38,6 @@ class Protein:
     interpro_domains: dict[str, tuple[int, int]] = field(default_factory=dict)
     esm2_embeddings: dict[str, list[float]] = field(default_factory=dict)
     closest_arabidopsis: str = None
+
+    def __eq__(self, other: object) -> bool:
+        return self.seq == other.seq and self.taxon == other.taxon
