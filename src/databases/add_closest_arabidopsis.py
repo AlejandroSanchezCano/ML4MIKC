@@ -23,6 +23,7 @@ import pandas as pd
 from src.misc import path
 from src.misc.logger import logger
 from src.entities.collection import ProteinCollection
+logger.info('Importing modules completed')
 
 # Fasta Arabidopsis proteins
 df = pd.read_csv(path.DATA / "arabidopsis_mikc_prots.tsv", sep="\t")
@@ -31,7 +32,9 @@ with open("ara.fasta", "w") as f:
         f.write(f">{row['Protein']}\n{row['TOTAL']}\n")
 
 # Fasta DB proteins
-collection = ProteinCollection(dir = path.MIKC_PROTS)
+file_path = path.DATA / 'mikc_proteins.h5'
+collection = ProteinCollection(file_path=file_path)
+proteins = [protein for protein in collection]
 collection.fasta(out_path = "db.fasta", header_attributes = ['uniprot'])
 
 # MMseqs2 search
@@ -50,9 +53,15 @@ subprocess.run("rm -r ara.fasta db.fasta aln.m8 tmp", shell=True, check=True)
 
 # Assign closest Arabidopsis protein to each DB protein
 best_hits_dict = best_hits.set_index("target")["query"].to_dict()
-for protein in collection:
+for protein in proteins:
     ara_bioID = best_hits_dict.get(protein.uniprot, 'No hit')
     protein.closest_arabidopsis = ara_bioID
-    protein.pickle(path.MIKC_PROTS)
+
+# Save updated proteins
+collection = ProteinCollection(
+    file_path=path.DATA / 'mikc_proteins.h5', 
+    items=proteins
+    )
+collection.to_hdf5()
 
 

@@ -25,6 +25,7 @@ from esm2 import ESM2
 from src.misc import path
 from src.misc.logger import logger
 from src.entities.collection import ProteinCollection
+logger.info('Importing modules completed')
 
 # Choose ESM2 models
 models = [
@@ -36,10 +37,9 @@ models = [
     #'15B' Too big
     ]
 
-import torch
-
 # Gather Protein objects
-collection = ProteinCollection(dir = path.MIKC_PROTS)
+file_path = path.DATA / 'mikc_proteins.h5'
+collection = ProteinCollection(file_path=file_path)
 proteins = [protein for protein in collection]
 
 # Compute and store embeddings
@@ -52,8 +52,15 @@ for model in models:
             esm2.prepare_data(data)
         except ValueError as e:
             logger.error(f'Error computing {model} embeddings for {protein.uniprot} due to sequence length ({len(protein.seq)}): {e}')
+            protein.esm2_embeddings[model] = None
             continue
         esm2.run_model()
         r, s = esm2.extract_representations()
         protein.esm2_embeddings[model] = r
-        protein.pickle(dir = path.MIKC_PROTS)
+       
+# Save updated proteins
+collection = ProteinCollection(
+    file_path=file_path,
+    items=proteins
+    )
+collection.to_hdf5()

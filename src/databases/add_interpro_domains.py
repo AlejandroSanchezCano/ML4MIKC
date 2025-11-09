@@ -7,7 +7,7 @@ Outline:    Uses the UniProt class to fetch from the InterPro API the
             Coroutines with asyncio are implemented to speed up the process.
 Author:     Alejandro Sánchez Cano
 Date:       04/11/2025
-Time:       20 min
+Time:       25 min
 ===============================================================================
 """
 
@@ -22,20 +22,28 @@ from tqdm.asyncio import tqdm_asyncio
 # Custom modules
 from src.misc import path
 from src.misc.logger import logger
-from src.databases.uniprot import UniProt
 from src.entities.protein import Protein
-from src.entities.collection import Collection
+from src.databases.uniprot import UniProt
+from src.entities.collection import ProteinCollection
 logger.setLevel(20)
+logger.info('Importing modules completed')
 
-async def main():
+async def main() -> tuple[dict[str, dict], list[Protein]]:
     '''
     Function that wraps main functionality.
+
+    Returns
+    -------
+    tuple[dict[str, dict], list[Protein]]
+        A tuple containing a dictionary mapping UniProt accessions to their 
+        InterPro domains and a list of Protein objects.
     '''
     # Limit concurrent requests
     semaphore = asyncio.Semaphore(10)  
 
     # Gather tasks
-    collection = Collection(dir = path.MIKC_PROTS, class_type = Protein)
+    file_path = path.DATA / 'mikc_proteins.h5'
+    collection = ProteinCollection(file_path=file_path)
     proteins = [protein for protein in collection]
     uniprots = [UniProt(protein.uniprot) for protein in proteins]
     tasks = [uniprot.interpro_domains(semaphore) for uniprot in uniprots]
@@ -49,11 +57,17 @@ async def main():
         ):
         uniprot_accession, domains = await coroutine
         results[uniprot_accession] = domains
-
-    # Save domains in Protein objects
-    for protein in tqdm(proteins, desc='Saving protein objects with domains'):
-        protein.interpro_domains = dict(results[protein.uniprot]) # Defaultdicts are not compatible with dataclasses.asdict
-        protein.pickle(dir = path.MIKC_PROTS)
+    
+    return results, proteins
 
 # Run event loop
-results = asyncio.run(main())
+results, proteins = asyncio.run(main())
+
+# Save domains in Protein objects
+for protein in tqdm(proteins, desc='Saving protein objects with domains'):
+    protein.interpro_domains = dict(results[protein.uniprot])
+collection = ProteinCollection(
+    file_path=path.DATA / 'mikc_proteins.h5', 
+    items=proteins
+    )
+collection.to_hdf5()

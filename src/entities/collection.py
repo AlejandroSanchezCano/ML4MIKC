@@ -60,14 +60,15 @@ class ProteinCollection(Collection):
         items: list | None = None
         ):
         self.file_path = Path(file_path) if file_path else None
-        self.proteins = items if items else []
+        self.items = items if items else []
 
     def __iter__(self):
         # Already loaded
-        if self.proteins:
-            for protein in tqdm(self.proteins, desc='Iterating over Protein collection'):
+        if self.items:
+            for protein in tqdm(self.items, desc='Iterating over Protein collection'):
                 yield protein
 
+        print('Loading ProteinCollection from HDF5...')
         # Load from HDF5
         with h5py.File(self.file_path, 'r') as file:
             seq_array = file['seq'][:]
@@ -76,7 +77,23 @@ class ProteinCollection(Collection):
             section_array = file['section'][:]
             primary_accession_array = file['primary_accession'][:]
             secondary_accessions_array = file['secondary_accessions'][:]
+            closest_arabidopsis_array = file['closest_arabidopsis'][:]
+            interpro_domains_array = file['interpro_domains'][:]
+            esm2_embeddings_array = {key: file['esm2_embeddings'][key][:] for key in file['esm2_embeddings']}
+
+        # Utils dict for esm2 embeddings
+        model2dim = {
+            '8M': 320,
+            '35M': 480,
+            '150M': 640,
+            '650M': 1280,
+            '3B': 2560,
+            '15B': 5120
+        }
         
+        for i,j in esm2_embeddings_array.items():
+            print(i, j.shape)
+
         # Yield Protein objects
         for idx in tqdm(range(len(seq_array)), desc='Loading Protein collection from HDF5'):
             protein = Protein(
@@ -85,52 +102,67 @@ class ProteinCollection(Collection):
                 taxon = int(taxon_array[idx]),
                 section = section_array[idx].decode('utf-8'),
                 primary_accession = primary_accession_array[idx].decode('utf-8'),
-                secondary_accessions = [string.decode('utf-8') for string in secondary_accessions_array[idx]]
+                secondary_accessions = [string.decode('utf-8') for string in secondary_accessions_array[idx]],
+                interpro_domains= json.loads(interpro_domains_array[idx].decode('utf-8')),
+                closest_arabidopsis = closest_arabidopsis_array[idx].decode('utf-8'),
+                esm2_embeddings = {
+                    model: embeddings[idx].reshape(-1, model2dim[model])
+                    for model, embeddings in esm2_embeddings_array.items()
+                }
             )
-            self.proteins.append(protein)
+            self.items.append(protein)
             yield protein
 
     def to_hdf5(self) -> None:
         # Create HDF5 file
         with h5py.File(self.file_path, 'w') as file:
             # Iterate over attributes
-            attributes = self.proteins[0].__dataclass_fields__.keys()
+            attributes = self.items[0].__dataclass_fields__.keys()
             for attr in attributes:
                 # Skip attributes with all default values
-                all_default = all(getattr(protein, attr) in (None, {}, []) for protein in self.proteins)
+                all_default = all(getattr(protein, attr) in (None, {}, []) for protein in self.items)
                 if all_default: continue
                 # Save non-default attributes
                 match attr:
                     # Handle string attributes
                     case 'seq' | 'uniprot' | 'section' | 'primary_accession' | 'closest_arabidopsis':
                         dtype = h5py.string_dtype(encoding='utf-8')
-                        array = np.array([getattr(protein, attr) for protein in self.proteins], dtype=dtype)
+                        array = np.array([getattr(protein, attr) for protein in self.items], dtype=dtype)
                         file.create_dataset(attr, data=array, compression="gzip", compression_opts=4, chunks=True)
                     # Handle integer attributes
                     case 'taxon':
                         dtype = np.int32
-                        array = np.array([getattr(protein, attr) for protein in self.proteins], dtype=dtype)
+                        array = np.array([getattr(protein, attr) for protein in self.items], dtype=dtype)
                         file.create_dataset(attr, data=array, compression="gzip", compression_opts=4, chunks=True)
                     # Handle list of strings attributes
                     case 'secondary_accessions':
-                        lst = [protein.secondary_accessions for protein in self.proteins]
+                        lst = [protein.secondary_accessions for protein in self.items]
                         dtype = h5py.vlen_dtype(h5py.string_dtype(encoding='utf-8'))
                         lst = [np.array(sublist, dtype=dtype) for sublist in lst]
                         array = np.array(lst, dtype=dtype)
                         file.create_dataset(attr, data=array, compression="gzip", compression_opts=4, chunks=True)
                     # Handle dictionary attributes
                     case 'interpro_domains':
-                        lst = [json.dumps(protein.interpro_domains) for protein in self.proteins]
+                        lst = [json.dumps(protein.interpro_domains) for protein in self.items]
                         dtype = h5py.string_dtype(encoding='utf-8')
                         array = np.array(lst, dtype=dtype)
                         file.create_dataset(attr, data=array, compression="gzip", compression_opts=4, chunks=True)
                     # Handle special attributes
                     case 'esm2_embeddings': 
-                        pass
-                        # THIS WILL CHANGE!
-                        #group = file.create_group('650M')
-                        #array = np.random.rand(30, 200, 1280).astype(np.float32)
-                        #group.create_dataset(attr, data=array, compression="gzip", compression_opts=4, chunks=True)
+                        for model in self.items[0].esm2_embeddings.keys():
+                            group = file.create_group('esm2_embeddings')
+                            embeddings = [item.esm2_embeddings[model] for item in self.items]
+                            embeddings = [
+                                (
+                                    embedding.flatten()
+                                    if embedding is not None 
+                                    else np.array([], dtype=np.float32)
+                                )
+                                for embedding in embeddings
+                            ] # vlen supports 1D only                            
+                            dtype = h5py.vlen_dtype(np.dtype('float32'))
+                            data_array = np.array(embeddings, dtype=dtype)
+                            group.create_dataset(model, data=data_array, compression="gzip", compression_opts=4, chunks=True)
 
     def sequence_report(self) -> None:
         '''
@@ -207,3 +239,4 @@ class ProteinCollection(Collection):
 if __name__ == "__main__":
     collection = ProteinCollection(file_path = path.DATA / 'mikc_proteins.h5')
     prots = [p for p in collection]
+    print(prots[0])
