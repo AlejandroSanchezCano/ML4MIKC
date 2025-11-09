@@ -3,8 +3,12 @@
 Title:      Collection
 Outline:    Collection class that represents a collection of entities such as
             Proteins, PPIs, etc. It hosts functionalities that concern 
-            collections as a whole and not individual entities. It supports:
-            - Multithreaded instantiation from a directory of pickled objects.
+            collections as a whole and not individual entities.
+            + ProteinCollection:
+              - Load and save Protein objects from/to HDF5 files.
+              - Iterate over Protein objects in the collection.
+              - Generate sequence reports (length distributions, etc).
+              - Export sequences to FASTA files (single or per species).
 Author:     Alejandro Sánchez Cano
 Date:       02/11/2025
 ===============================================================================
@@ -14,6 +18,7 @@ Date:       02/11/2025
 import json
 from pathlib import Path
 import concurrent.futures
+from typing import Iterable
 from abc import ABC, abstractmethod
 from collections import defaultdict
 
@@ -64,7 +69,20 @@ class ProteinCollection(Collection):
         self.items = items if items else []
         self.limit = limit
 
-    def __iter__(self):
+    def __iter__(self) -> Iterable[Protein]:
+        '''
+        If items are already in memory either because they were provided at 
+        initialization or because they were previously loaded from HDF5, yield
+        them directly. Otherwise, load them from the HDF5 file and yield them
+        one by one. For this, the HDF5 file is expected to have a specific
+        structure of groups and datasets corresponding to Protein attributes, 
+        which are differentially loaded. 
+
+        Yields
+        ------
+        Protein
+            Protein objects in the collection.
+        '''
         # Already loaded
         if self.items:
             for protein in tqdm(self.items, desc='Iterating over Protein collection'):
@@ -113,6 +131,11 @@ class ProteinCollection(Collection):
             yield protein
 
     def to_hdf5(self) -> None:
+        '''
+        Save the ProteinCollection to an HDF5 file. Based on the attributes
+        present in the Protein objects, and their types, its contents are saved
+        accordingly. Therefore, it requires string matching for each attribute.
+        '''
         # Create HDF5 file
         with h5py.File(self.file_path, 'w') as file:
             # Iterate over attributes
