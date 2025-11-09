@@ -57,10 +57,12 @@ class ProteinCollection(Collection):
     def __init__(
         self, 
         file_path: str | Path | None = None, 
-        items: list | None = None
+        items: list | None = None,
+        limit: int | None = None
         ):
         self.file_path = Path(file_path) if file_path else None
         self.items = items if items else []
+        self.limit = limit
 
     def __iter__(self):
         # Already loaded
@@ -68,18 +70,18 @@ class ProteinCollection(Collection):
             for protein in tqdm(self.items, desc='Iterating over Protein collection'):
                 yield protein
 
-        print('Loading ProteinCollection from HDF5...')
         # Load from HDF5
+        logger.info(f'Loading ProteinCollection from HDF5 file...')
         with h5py.File(self.file_path, 'r') as file:
-            seq_array = file['seq'][:]
-            uniprot_array = file['uniprot'][:]
-            taxon_array = file['taxon'][:]
-            section_array = file['section'][:]
-            primary_accession_array = file['primary_accession'][:]
-            secondary_accessions_array = file['secondary_accessions'][:]
-            closest_arabidopsis_array = file['closest_arabidopsis'][:]
-            interpro_domains_array = file['interpro_domains'][:]
-            esm2_embeddings_array = {key: file['esm2_embeddings'][key][:] for key in file['esm2_embeddings']}
+            seq_array = file['seq'][:self.limit]
+            uniprot_array = file['uniprot'][:self.limit]
+            taxon_array = file['taxon'][:self.limit]
+            section_array = file['section'][:self.limit]
+            primary_accession_array = file['primary_accession'][:self.limit]
+            secondary_accessions_array = file['secondary_accessions'][:self.limit]
+            closest_arabidopsis_array = file['closest_arabidopsis'][:self.limit]
+            interpro_domains_array = file['interpro_domains'][:self.limit]
+            esm2_embeddings_array = {key: file['esm2_embeddings'][key][:self.limit] for key in file['esm2_embeddings']}
 
         # Utils dict for esm2 embeddings
         model2dim = {
@@ -91,9 +93,6 @@ class ProteinCollection(Collection):
             '15B': 5120
         }
         
-        for i,j in esm2_embeddings_array.items():
-            print(i, j.shape)
-
         # Yield Protein objects
         for idx in tqdm(range(len(seq_array)), desc='Loading Protein collection from HDF5'):
             protein = Protein(
@@ -237,6 +236,9 @@ class ProteinCollection(Collection):
                     f.write(f'{protein.seq}\n')
 
 if __name__ == "__main__":
-    collection = ProteinCollection(file_path = path.DATA / 'mikc_proteins.h5')
+    collection = ProteinCollection(
+        file_path = path.DATA / 'mikc_proteins.h5',
+        limit = 1000
+        )
     prots = [p for p in collection]
     print(prots[0])
