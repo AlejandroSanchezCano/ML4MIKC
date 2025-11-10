@@ -8,7 +8,7 @@ Outline:    Uses the InterPro class to retrieve the UniProt IDs of proteins
             The UniProt IDs are saved to a file for further processing.
 Author:     Alejandro Sánchez Cano
 Date:       10/11/2025
-Time:       1h 40min (3 min if cached)
+Time:       30 sec
 ===============================================================================
 """
 
