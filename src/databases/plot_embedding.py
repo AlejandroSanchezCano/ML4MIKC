@@ -18,7 +18,7 @@ logger.info('Importing modules completed')
 
 # Gather embeddings
 file_path = path.DATA / 'mikc_proteins.h5'
-collection = ProteinCollection(file_path=file_path, limit=7000)
+collection = ProteinCollection(file_path=file_path)
 proteins = [p for p in collection if p.esm2_embeddings['650M'].size]
 residue_embeddings = [protein.esm2_embeddings['650M'] for protein in proteins]
 sequence_embeddings = np.array([
@@ -77,3 +77,62 @@ plt.clf()
 #plt.clf()
 #
 #umap.version
+
+
+
+##TMAP
+#import tmap as tm
+#import numpy as np
+#from faerun import Faerun
+#import pandas as pd
+#
+## Example embedding matrix (20000 x 1280)
+#embeddings = means
+#
+## Example categorical string labels
+#labels = closest
+#int_labels, uniques = pd.factorize(labels)
+#legend_labels = [(int_label, unique) for int_label, unique in zip(int_labels, uniques)]
+#
+## TMAP configuration
+#CFG = tm.LayoutConfiguration()
+#CFG.node_size = 1 / 50
+#
+## MinHash for binary vectors
+#dims = embeddings.shape[1]
+#enc = tm.Minhash(dims)
+#lf = tm.LSHForest(dims, 128)
+#
+## Convert embeddings to binary vectors for MinHash
+#tmp = []
+#for vec in embeddings:
+#    avg = vec.mean()
+#    tmp.append(tm.VectorUchar([1 if x >= avg else 0 for x in vec]))
+#
+## Batch add to LSHForest
+#lf.batch_add(enc.batch_from_binary_array(tmp))
+#lf.index()
+#
+## Generate TMAP layout
+#x, y, s, t, _ = tm.layout_from_lsh_forest(lf, CFG)
+#
+## Faerun visualization
+#faerun = Faerun(view="front", clear_color="#111111", coords=False)
+#faerun.add_scatter(
+#    "Embeddings",
+#    {
+#        "x": x,
+#        "y": y,
+#        "c": int_labels,
+#    },
+#    colormap="tab10",
+#    shader="smoothCircle",
+#    point_scale=2.5,
+#    max_point_size=10,
+#    has_legend=True,
+#    categorical=True,  # categorical for string labels
+#    legend_labels=legend_labels,
+#)
+#faerun.add_tree("Tree", {"from": s, "to": t}, point_helper="Embeddings", color="#666666")
+#faerun.plot("embedding_tmap_strings")
+#
