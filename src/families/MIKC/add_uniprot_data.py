@@ -24,7 +24,7 @@ from src.misc import path
 from src.misc.logger import logger
 from src.entities.protein import Protein
 from src.entities.collection import ProteinCollection
-from src.databases.uniprot import UniProt, UniProtError
+from src.families.uniprot import UniProt, UniProtError
 logger.setLevel(20)
 logger.info('Importing modules completed')
 

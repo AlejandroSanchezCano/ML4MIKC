@@ -23,7 +23,7 @@ from tqdm.asyncio import tqdm_asyncio
 from src.misc import path
 from src.misc.logger import logger
 from src.entities.protein import Protein
-from src.databases.uniprot import UniProt
+from src.families.uniprot import UniProt
 from src.entities.collection import ProteinCollection
 logger.setLevel(20)
 logger.info('Importing modules completed')

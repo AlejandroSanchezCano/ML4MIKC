@@ -14,7 +14,7 @@ Time:       1h 40min (3 min if cached)
 # Custom modules
 from src.misc import path
 from src.misc.logger import logger
-from src.databases.interpro import InterPro
+from src.families.interpro import InterPro
 
 # MADS proteins -> 1h 20min
 mads = InterPro('IPR002100')
