@@ -22,9 +22,6 @@ ida = '9b1d1537f57a287fce1f0a861665d2876b831672'
 interpro = InterProDomainArchitecture(ida=ida)
 m_uniprot_ids = interpro.get_uniprot()
 
-# Logging
-logger.info(f'{len(m_uniprot_ids)} M UniProt IDs retrieved')
-
 # Save M UniProt IDs
 output_file = path.DATA / 'm_uniprot_ids.txt'
 with open(output_file, 'w') as f:
