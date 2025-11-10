@@ -11,18 +11,20 @@ Time:       1h 40min (3 min if cached)
 ===============================================================================
 """
 
+#TODO: Refactor to use InterProDomainArchitecture for MADS-box and K-box too
+
 # Custom modules
 from src.misc import path
 from src.misc.logger import logger
-from src.families.interpro import InterPro
+from src.families.interpro import InterProAccession
 
 # MADS proteins -> 1h 20min
-mads = InterPro('IPR002100')
+mads = InterProAccession('IPR002100')
 mads.get_metadata()
 m_uniprot_ids = mads.get_uniprot()
 
 # K-box proteins -> 20min
-kbox = InterPro('IPR002487')
+kbox = InterProAccession('IPR002487')
 kbox.get_metadata()
 k_uniprot_ids = kbox.get_uniprot()
 
