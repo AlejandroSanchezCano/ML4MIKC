@@ -2,14 +2,14 @@
 ===============================================================================
 Title:      Add UniProt data to Protein objects
 Outline:    Uses the UniProt class to fetch the metadata, sequence, (and
-            structure) of MIKC proteins using their UniProt IDs. The data is 
+            structure) of M proteins using their UniProt IDs. The data is 
             stored in the Protein objects and saved.
             Some UniProt accessions are inactive and therefore skipped.
             Also, accessions with identical sequence and taxon are considered
             redundant and only one of them is kept (preferentially Swiss-Prot).
 Author:     Alejandro Sánchez Cano
 Date:       02/10/2024
-Time:       3h 30min
+Time:       4h
 ===============================================================================
 """
 
@@ -28,18 +28,18 @@ from src.families.uniprot import UniProt, UniProtError
 logger.setLevel(20)
 logger.info('Importing modules completed')
 
-# Load MIKC UniProt accessions
-mikc_uniprots = []
-file = path.DATA / 'm_and_k_uniprot_ids.txt'
+# Load M UniProt accessions
+m_uniprots = []
+file = path.DATA / 'm_uniprot_ids.txt'
 with open(file, 'r') as handle:
     for line in handle:
-        mikc_uniprots.append(line.strip())
-logger.info(f'{len(mikc_uniprots)} MIKC UniProt accessions loaded')
+        m_uniprots.append(line.strip())
+logger.info(f'{len(m_uniprots)} M UniProt accessions loaded')
 
 # Retrieve data per UniProt accession
 proteins = []
 inactive_uniprots = []
-for uniprot in tqdm(mikc_uniprots, desc="Fetching UniProt data"):
+for uniprot in tqdm(m_uniprots, desc="Fetching UniProt data"):
 
     # Logging
     logger.info(f'Fetching UniProt data for accession {uniprot}...')
@@ -90,11 +90,11 @@ for seq_taxon, prot_list in seqs2protein.items():
     nr_proteins.append(prot_list[0])
 
 # Save Protein objects
-file_path = path.DATA / 'mikc_proteins.h5'
+file_path = path.DATA / 'm_proteins.h5'
 collection = ProteinCollection(file_path=file_path, items=nr_proteins)
 collection.to_hdf5()
 
 # Logging
-logger.info(f'{len(nr_proteins)} MIKC Protein objects saved')
+logger.info(f'{len(nr_proteins)} M Protein objects saved')
 logger.info(f'{len(inactive_uniprots)} inactive UniProt accessions skipped')
-logger.info(f'{len(proteins) - len(nr_proteins)} redundant MIKC Protein objects skipped')
+logger.info(f'{len(proteins) - len(nr_proteins)} redundant M Protein objects skipped')
