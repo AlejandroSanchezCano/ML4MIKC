@@ -95,6 +95,6 @@ collection = ProteinCollection(file_path=file_path, items=nr_proteins)
 collection.to_hdf5()
 
 # Logging
-logger.info(f'{len(nr_proteins)} M Protein objects saved')
 logger.info(f'{len(inactive_uniprots)} inactive UniProt accessions skipped')
 logger.info(f'{len(proteins) - len(nr_proteins)} redundant M Protein objects skipped')
+logger.info(f'{len(nr_proteins)} M Protein objects saved')
