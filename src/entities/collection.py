@@ -71,7 +71,7 @@ class ProteinCollection(Collection):
         self.limit = limit
         self.datasets = datasets 
 
-    def _should_load(self, dataset: str) -> bool:
+    def _should_load(self, dataset: str, file: h5py.File) -> bool:
         '''
         Determines whether a specific dataset should be loaded based on the
         datasets attribute provided at initialization.
@@ -80,16 +80,21 @@ class ProteinCollection(Collection):
         ----------
         dataset : str
             Name of the dataset to check.
+        file : h5py.File
+            HDF5 file object.
 
         Returns
         -------
         bool
             True if the dataset should be loaded, False otherwise.
         '''
+        # All datasets
         if self.datasets is None:
-            return True
+            return dataset in list(file.keys())
+        # Specific datasets
         if isinstance(self.datasets, list):
-            return dataset in self.datasets
+            return dataset in self.datasets and dataset in list(file.keys())
+        # Lightweight datasets
         if self.datasets == 'lightweight':
             lightweight_datasets = [
                 'seq', 'uniprot', 'taxon', 'section', 
@@ -97,8 +102,6 @@ class ProteinCollection(Collection):
                 'interpro_domains', 'closest_arabidopsis'
             ]
             return dataset in lightweight_datasets
-
-        raise ValueError(f'Invalid datasets specification: {self.datasets}')
 
     def __iter__(self) -> Iterable[Protein]:
         '''
@@ -122,15 +125,15 @@ class ProteinCollection(Collection):
         # Load from HDF5
         logger.info(f'Loading ProteinCollection from HDF5 file...')
         with h5py.File(self.file_path, 'r') as file:
-            seq_array = file['seq'][:self.limit] if self._should_load('seq') else None
-            uniprot_array = file['uniprot'][:self.limit] if self._should_load('uniprot') else None
-            taxon_array = file['taxon'][:self.limit] if self._should_load('taxon') else None
-            section_array = file['section'][:self.limit] if self._should_load('section') else None
-            primary_accession_array = file['primary_accession'][:self.limit] if self._should_load('primary_accession') else None
-            secondary_accessions_array = file['secondary_accessions'][:self.limit] if self._should_load('secondary_accessions') else None
-            closest_arabidopsis_array = file['closest_arabidopsis'][:self.limit] if self._should_load('closest_arabidopsis') else None
-            interpro_domains_array = file['interpro_domains'][:self.limit] if self._should_load('interpro_domains') else None
-            esm2_embeddings_array = {key: file['esm2_embeddings'][key][:self.limit] for key in file['esm2_embeddings']} if self._should_load('esm2_embeddings') else None
+            seq_array = file['seq'][:self.limit] if self._should_load('seq', file) else None
+            uniprot_array = file['uniprot'][:self.limit] if self._should_load('uniprot', file) else None
+            taxon_array = file['taxon'][:self.limit] if self._should_load('taxon', file) else None
+            section_array = file['section'][:self.limit] if self._should_load('section', file) else None
+            primary_accession_array = file['primary_accession'][:self.limit] if self._should_load('primary_accession', file) else None
+            secondary_accessions_array = file['secondary_accessions'][:self.limit] if self._should_load('secondary_accessions', file) else None
+            closest_arabidopsis_array = file['closest_arabidopsis'][:self.limit] if self._should_load('closest_arabidopsis', file) else None
+            interpro_domains_array = file['interpro_domains'][:self.limit] if self._should_load('interpro_domains', file) else None
+            esm2_embeddings_array = {key: file['esm2_embeddings'][key][:self.limit] for key in file['esm2_embeddings']} if self._should_load('esm2_embeddings', file) else None
 
         # Utils dict for esm2 embeddings
         model2dim = {
@@ -301,8 +304,8 @@ class ProteinCollection(Collection):
 
 if __name__ == "__main__":
     collection = ProteinCollection(
-        file_path = path.DATA / 'mikc_proteins.h5',
-        limit = 20_000,
+        file_path = path.DATA / 'm_proteins.h5',
+        limit = 1_000,
         datasets = ['seq']
         )
     prots = [p for p in collection]
