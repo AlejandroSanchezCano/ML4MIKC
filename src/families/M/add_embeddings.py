@@ -13,7 +13,7 @@ Outline:    Use ESM2 to compute per-sequence embeddings for the proteins in the
             script.
 Author:     Alejandro Sánchez Cano
 Date:       01/07/2025
-Time:       22 min (models already downloaded)
+Time:       30 min (models already downloaded)
 ===============================================================================
 """
 
