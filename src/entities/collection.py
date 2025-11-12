@@ -125,6 +125,10 @@ class ProteinCollection(Collection):
         # Load from HDF5
         logger.info(f'Loading ProteinCollection from HDF5 file...')
         with h5py.File(self.file_path, 'r') as file:
+            # Load attributes
+            num_items = file.attrs['num_items']
+
+            # Load datasets
             seq_array = file['seq'][:self.limit] if self._should_load('seq', file) else None
             uniprot_array = file['uniprot'][:self.limit] if self._should_load('uniprot', file) else None
             taxon_array = file['taxon'][:self.limit] if self._should_load('taxon', file) else None
@@ -134,7 +138,10 @@ class ProteinCollection(Collection):
             closest_arabidopsis_array = file['closest_arabidopsis'][:self.limit] if self._should_load('closest_arabidopsis', file) else None
             interpro_domains_array = file['interpro_domains'][:self.limit] if self._should_load('interpro_domains', file) else None
             esm2_embeddings_array = {key: file['esm2_embeddings'][key][:self.limit] for key in file['esm2_embeddings']} if self._should_load('esm2_embeddings', file) else None
-
+            
+            for key, value in file.attrs.items():
+                print(f"  {key}: {value}")
+                
         # Utils dict for esm2 embeddings
         model2dim = {
             '8M': 320,
@@ -146,7 +153,7 @@ class ProteinCollection(Collection):
         }
         
         # Yield Protein objects
-        for idx in tqdm(range(len(seq_array)), desc='Loading Protein collection from HDF5'):
+        for idx in tqdm(range(num_items), desc='Loading Protein collection from HDF5'):
             kwargs = {}
             if seq_array is not None:
                 kwargs['seq'] = seq_array[idx].decode('utf-8')
@@ -179,12 +186,20 @@ class ProteinCollection(Collection):
         Save the ProteinCollection to an HDF5 file. Based on the attributes
         present in the Protein objects, and their types, its contents are saved
         accordingly. Therefore, it requires string matching for each attribute.
+        Note: existing data is frozen and not overwritten.
         '''
         # Create HDF5 file
-        with h5py.File(self.file_path, 'w') as file:
+        with h5py.File(self.file_path, 'a') as file:
+
+            # Number of items as attribute
+            file.attrs['num_items'] = len(self.items)
+
             # Iterate over attributes
             attributes = self.items[0].__dataclass_fields__.keys()
             for attr in attributes:
+                # Skip existing datasets
+                if attr in file.keys():
+                    continue
                 # Skip attributes with all default values
                 all_default = all(getattr(protein, attr) in (None, {}, []) for protein in self.items)
                 if all_default: continue
