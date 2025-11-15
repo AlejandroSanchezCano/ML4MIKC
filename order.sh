@@ -14,3 +14,6 @@ sh job.sh -u gpu_a100 -t 00:25:00 -f src/families/M/add_embeddings.py
 # Yichun
 python src/quick/yichun/parse.py
 sh job.sh -u gpu_a100 -t 00:25:00 -f src/quick/yichun/calculate_embeddings.py
+
+# Databases
+python src/databases/download_databases_PPIs.py

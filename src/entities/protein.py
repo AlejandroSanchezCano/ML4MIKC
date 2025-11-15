@@ -29,7 +29,7 @@ from dataclasses import dataclass, field
 
 @dataclass(slots=True)
 class Protein:
-    seq: str
+    seq: str = None
     uniprot: str = None
     taxon: int = None
     section: str = None

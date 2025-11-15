@@ -253,7 +253,7 @@ class UniProt:
 
 if __name__ == '__main__':
     '''Test class'''
-    uniprot = UniProt('P48007')
+    uniprot = UniProt('Q38836-2')
     print(uniprot.fetch_metadata())
     print(uniprot.fetch_sequence())
     print(uniprot.fetch_structure())

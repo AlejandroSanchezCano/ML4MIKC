@@ -18,3 +18,9 @@ TOOLS = CHONKY / 'tools'
 
 # Data directories
 DATA = PROJECT / 'data'
+
+# Databases
+DATABASES = DATA / 'PPI_databases'
+BIOGRID = DATABASES / 'BioGRID'
+PLAPPISITE = DATABASES / 'PlaPPISite'
+INTACT = DATABASES / 'IntAct'

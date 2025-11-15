@@ -127,7 +127,6 @@ class ProteinCollection(Collection):
         with h5py.File(self.file_path, 'r') as file:
             # Load attributes
             num_items = file.attrs['num_items']
-
             # Load datasets
             seq_array = file['seq'][:self.limit] if self._should_load('seq', file) else None
             uniprot_array = file['uniprot'][:self.limit] if self._should_load('uniprot', file) else None
@@ -138,9 +137,6 @@ class ProteinCollection(Collection):
             closest_arabidopsis_array = file['closest_arabidopsis'][:self.limit] if self._should_load('closest_arabidopsis', file) else None
             interpro_domains_array = file['interpro_domains'][:self.limit] if self._should_load('interpro_domains', file) else None
             esm2_embeddings_array = {key: file['esm2_embeddings'][key][:self.limit] for key in file['esm2_embeddings']} if self._should_load('esm2_embeddings', file) else None
-            
-            for key, value in file.attrs.items():
-                print(f"  {key}: {value}")
                 
         # Utils dict for esm2 embeddings
         model2dim = {
