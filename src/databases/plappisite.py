@@ -2,10 +2,9 @@
 ===============================================================================
 Title:      PlaPPISite
 Outline:    PlaPPISite class to access the current web content of PlaPPISite
-            (no version system is used), search for all MADS interactions,
-            filter to only MADS vs. MADS interactions, and standarize the data 
-            frame to a common format that makes it compatible to the Network 
-            class.
+            (no version system is used), search for all MADS interactions, and
+            filter to only MADS vs. MADS interactions. They are represented by 
+            their UniProt accessions.
 Docs:       http://zzdlab.com/plappisite/
 Author:     Alejandro Sánchez Cano
 Date:       17/10/2024

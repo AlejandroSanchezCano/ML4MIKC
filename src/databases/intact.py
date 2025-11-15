@@ -2,10 +2,9 @@
 ===============================================================================
 Title:      IntAct
 Outline:    IntAct class to download the data of any version of IntAct, reduce 
-            it to only plant interactors, search for all MADS interactions, 
-            filter to only MADS vs. MADS interactions, and standarize the data 
-            frame to a common format that makes it compatible to the Network 
-            class.
+            it to only plant interactors, search for all MADS interactions, and 
+            filter to only MADS vs. MADS interactions. They are represented by 
+            their UniProt accessions.
 Docs:       https://www.ebi.ac.uk/intact/home
 Author:     Alejandro Sánchez Cano
 Date:       17/10/2025

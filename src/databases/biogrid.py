@@ -3,9 +3,8 @@
 Title:      BioGRID
 Outline:    BioGRID class to download the data of any version of BioGRID,
             reduce it to only plant interactors, search for all MADS
-            interactions, filter to only MADS vs. MADS interactions, and
-            standarize the data frame to a common format that makes it 
-            compatible to the Network class.
+            interactions, and filter to only MADS vs. MADS interactions. They 
+            are represented by their UniProt accessions.
 Docs:       https://thebiogrid.org/
 Author:     Alejandro Sánchez Cano
 Date:       17/10/2024
