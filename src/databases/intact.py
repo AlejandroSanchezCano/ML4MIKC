@@ -181,16 +181,18 @@ class IntAct:
         mads_vs_mads = pd.read_csv(filepath, sep = '\t')
 
         # Retrieve UniProt accessions
-        ppi_accessions = []
+        ppi_uniprot_accessions = []
         for _, row in mads_vs_mads.iterrows():
             uniprot_A = row['#ID(s) interactor A'].split(':')[1]
             uniprot_B = row['ID(s) interactor B'].split(':')[1]
-            ppi_accessions.append((uniprot_A, uniprot_B))
-        # Logging
-        logger.info(f'Retrieved {len(ppi_accessions)} UniProt pairs accessions from MADS_vs_MADS file')
-        
-        return ppi_accessions
+            ppi_uniprot_accessions.append(tuple(sorted((uniprot_A, uniprot_B))))
+        ppi_uniprot_accessions = set(ppi_uniprot_accessions)
 
+        # Logging
+        logger.info(f'Retrieved {len(ppi_uniprot_accessions)} UniProt pairs accessions from MADS_vs_MADS file')
+        
+        return ppi_uniprot_accessions
+        
 if __name__ == '__main__':
     # Gather UniProt IDs of MADS-box proteins
     from src.misc import path

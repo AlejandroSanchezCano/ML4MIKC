@@ -193,8 +193,9 @@ class BioGRID:
             trembl_B = row['TREMBL Accessions Interactor B'].split('|')
             uniprot_A = swissprot_A if swissprot_A != '-' else trembl_A[0]
             uniprot_B = swissprot_B if swissprot_B != '-' else trembl_B[0]
-            ppi_uniprot_accessions.append((uniprot_A, uniprot_B))
-        
+            ppi_uniprot_accessions.append(tuple(sorted((uniprot_A, uniprot_B))))
+        ppi_uniprot_accessions = set(ppi_uniprot_accessions)
+
         # Logging
         logger.info(f'Retrieved {len(ppi_uniprot_accessions)} UniProt pairs accessions from MADS_vs_MADS file')
         

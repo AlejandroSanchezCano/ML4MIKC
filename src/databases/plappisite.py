@@ -181,7 +181,7 @@ class PlaPPISite:
         # Logging
         logger.info(f'MADS vs. MADS PPIs in PlaPPISite -> dim({mads_vs_mads.shape})')
 
-    def get_ppi_accessions(self) -> list[tuple[str, str]]:
+    def ppi_uniprot_accessions(self) -> list[tuple[str, str]]:
         '''
         Retrieves all UniProt accessions of the PPIs in the MADS vs. MADS 
         interactions file.
@@ -197,15 +197,16 @@ class PlaPPISite:
         mads_vs_mads = pd.read_csv(filepath, sep = '\t')
 
         # Retrieve UniProt accessions
-        ppi_accessions = []
+        ppi_uniprot_accessions = []
         for _, row in mads_vs_mads.iterrows():
-            uniprot_A, uniprot_B = row['PPI'].split('-')
-            ppi_accessions.append((uniprot_A, uniprot_B))
+            uniprot_A, uniprot_B = row['PPI'].split(' - ')
+            ppi_uniprot_accessions.append(tuple(sorted((uniprot_A, uniprot_B))))
+        ppi_uniprot_accessions = set(ppi_uniprot_accessions)
 
         # Logging
-        logger.info(f'Retrieved {len(ppi_accessions)} UniProt pairs accessions from MADS_vs_MADS file')
+        logger.info(f'Retrieved {len(ppi_uniprot_accessions)} UniProt pairs accessions from MADS_vs_MADS file')
         
-        return ppi_accessions
+        return ppi_uniprot_accessions
 
 if __name__ == '__main__':
     # Gather UniProt IDs of MADS-box proteins
@@ -219,5 +220,5 @@ if __name__ == '__main__':
     plappisite = PlaPPISite()
     #plappisite.mads_vs_all(mads_uniprots)
     plappisite.mads_vs_mads(mads_uniprots)
-    ppis = plappisite.get_ppi_accessions()
+    ppis = plappisite.ppi_uniprot_accessions()
     print(ppis)
