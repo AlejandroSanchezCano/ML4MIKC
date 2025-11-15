@@ -3,8 +3,9 @@
 Title:      Download data from PPI databases
 Outline:    Downloads the data from the IntAct, BioGRID, and PlaPPISite
             databases, reduces it to plant interactors if neccessary, 
-            filters it to only MADS-MADS interactions. Save their UniProt
-            accessions to a text file.
+            filters it to only MADS-MADS interactions. Add data from UniProt to
+            the interactors of the PPIs (taxon and sequence). Finally, save
+            PPI data to a tsv file.
 Docs:       https://downloads.thebiogrid.org/BioGRID
             https://ftp.ebi.ac.uk/pub/databases/intact/
 Author:     Alejandro Sánchez Cano
@@ -74,7 +75,8 @@ df = {
     'Taxon_A': [],
     'Taxon_B': [],
     'Seq_A': [],
-    'Seq_B': []
+    'Seq_B': [],
+    'Seq': []
 }
 
 # Fetch data from UniProt
@@ -110,6 +112,7 @@ for database in tqdm(ppi_uniprot_accessions, desc='Obtaining UniProt data'):
         df['UniProt_B'].append(B[0])
         df['Taxon_B'].append(B[1])
         df['Seq_B'].append(B[2])
+        df['Seq'].append(A[2] + B[2])
 
 # Save DataFrame
 df = pd.DataFrame(df)
