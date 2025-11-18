@@ -70,13 +70,12 @@ ppi_uniprot_accessions = {
 # Create dataframe
 df = {
     'Database': [],
-    'UniProt_A': [],
-    'UniProt_B': [],
-    'Taxon_A': [],
-    'Taxon_B': [],
+    'UniProtID_A': [],
+    'UniProtID_B': [],
+    'TaxonID_A': [],
+    'TaxonID_B': [],
     'Seq_A': [],
-    'Seq_B': [],
-    'Seq': []
+    'Seq_B': []
 }
 
 # Fetch data from UniProt
@@ -106,13 +105,12 @@ for database in tqdm(ppi_uniprot_accessions, desc='Obtaining UniProt data'):
             B = (uniprot_A, taxon_A, seq_A)
         # Append to df
         df['Database'].append(database)
-        df['UniProt_A'].append(A[0])
-        df['Taxon_A'].append(A[1])
+        df['UniProtID_A'].append(A[0])
+        df['TaxonID_A'].append(A[1])
         df['Seq_A'].append(A[2])
-        df['UniProt_B'].append(B[0])
-        df['Taxon_B'].append(B[1])
+        df['UniProtID_B'].append(B[0])
+        df['TaxonID_B'].append(B[1])
         df['Seq_B'].append(B[2])
-        df['Seq'].append(A[2] + B[2])
 
 # Save DataFrame
 df = pd.DataFrame(df)

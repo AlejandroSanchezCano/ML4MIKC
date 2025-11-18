@@ -29,6 +29,7 @@ from tqdm import tqdm
 
 # Custom modules
 from src.misc import path
+from src.entities.ppi import PPI
 from src.misc.logger import logger
 from src.entities.protein import Protein
 
@@ -97,7 +98,7 @@ class ProteinCollection(Collection):
         # Lightweight datasets
         if self.datasets == 'lightweight':
             lightweight_datasets = [
-                'seq', 'uniprot', 'taxon', 'section', 
+                'seq', 'uniprot', 'name', 'taxon', 'section', 
                 'primary_accession', 'secondary_accessions', 
                 'interpro_domains', 'closest_arabidopsis'
             ]
@@ -119,8 +120,9 @@ class ProteinCollection(Collection):
         '''
         # Already loaded
         if self.items:
-            for protein in tqdm(self.items, desc='Iterating over Protein collection'):
-                yield protein
+            for item in tqdm(self.items, desc='Iterating over Protein collection'):
+                yield item
+            return
 
         # Load from HDF5
         logger.info(f'Loading ProteinCollection from HDF5 file...')
@@ -128,7 +130,8 @@ class ProteinCollection(Collection):
             # Load attributes
             num_items = file.attrs['num_items']
             # Load datasets
-            seq_array = file['seq'][:self.limit] if self._should_load('seq', file) else None
+            seq_array = file['seq'][:self.limit] if self._should_load('seq', file) else None   
+            name_array = file['name'][:self.limit] if self._should_load('name', file) else None
             uniprot_array = file['uniprot'][:self.limit] if self._should_load('uniprot', file) else None
             taxon_array = file['taxon'][:self.limit] if self._should_load('taxon', file) else None
             section_array = file['section'][:self.limit] if self._should_load('section', file) else None
@@ -153,6 +156,8 @@ class ProteinCollection(Collection):
             kwargs = {}
             if seq_array is not None:
                 kwargs['seq'] = seq_array[idx].decode('utf-8')
+            if name_array is not None:
+                kwargs['name'] = name_array[idx].decode('utf-8')
             if uniprot_array is not None:
                 kwargs['uniprot'] = uniprot_array[idx].decode('utf-8')
             if taxon_array is not None:
@@ -197,12 +202,12 @@ class ProteinCollection(Collection):
                 if attr in file.keys():
                     continue
                 # Skip attributes with all default values
-                all_default = all(getattr(protein, attr) in (None, {}, []) for protein in self.items)
+                all_default = all(getattr(item, attr) in (None, {}, []) for item in self.items)
                 if all_default: continue
                 # Save non-default attributes
                 match attr:
                     # Handle string attributes
-                    case 'seq' | 'uniprot' | 'section' | 'primary_accession' | 'closest_arabidopsis':
+                    case 'seq' | 'name' | 'uniprot' | 'section' | 'primary_accession' | 'closest_arabidopsis':
                         dtype = h5py.string_dtype(encoding='utf-8')
                         array = np.array([getattr(protein, attr) for protein in self.items], dtype=dtype)
                         file.create_dataset(attr, data=array, compression="gzip", compression_opts=9, chunks=True)
@@ -312,6 +317,150 @@ class ProteinCollection(Collection):
                     header = '|'.join(values)
                     f.write(f'>{header}\n')
                     f.write(f'{protein.seq}\n')
+
+class PPICollection(Collection):
+    
+    def __init__(
+        self, 
+        file_path: str | Path | None = None,
+        protein_path: str | Path | None = None,
+        items: list | None = None,
+        datasets: list[str] | str | None = None,
+        limit: int | None = None
+        ):
+        self.file_path = Path(file_path) if file_path else None
+        self.protein_path = Path(protein_path) if protein_path else None
+        self.items = items if items else []
+        self.limit = limit
+        self.datasets = datasets 
+
+    def _should_load(self, dataset: str, file: h5py.File) -> bool:
+        '''
+        Determines whether a specific dataset should be loaded based on the
+        datasets attribute provided at initialization.
+
+        Parameters
+        ----------
+        dataset : str
+            Name of the dataset to check.
+        file : h5py.File
+            HDF5 file object.
+
+        Returns
+        -------
+        bool
+            True if the dataset should be loaded, False otherwise.
+        '''
+        # All datasets
+        if self.datasets is None:
+            return dataset in list(file.keys())
+        # Specific datasets
+        if isinstance(self.datasets, list):
+            return dataset in self.datasets and dataset in list(file.keys())
+        # Lightweight datasets
+        if self.datasets == 'lightweight':
+            lightweight_datasets = [
+                'p1', 'p2','interaction', 'origin'
+            ]
+            return dataset in lightweight_datasets
+
+    def __iter__(self) -> Iterable['PPI']:
+        # Already loaded
+        if self.items:
+            for item in tqdm(self.items, desc='Iterating over PPI collection'):
+                yield item
+            return
+
+        # Load protein collection
+        protein_collection = ProteinCollection(
+            file_path=self.protein_path,
+            datasets=['seq', 'taxon']
+        )
+        proteins = [protein for protein in protein_collection]
+
+        # Load from HDF5
+        logger.info(f'Loading PPI collection from HDF5 file...')
+        with h5py.File(self.file_path, 'r') as file:
+            # Load attributes
+            num_items = file.attrs['num_items']
+            # Load datasets
+            p1_array = file['p1'][:self.limit] if self._should_load('p1', file) else None   
+            p2_array = file['p2'][:self.limit] if self._should_load('p2', file) else None
+            interaction_array = file['interaction'][:self.limit] if self._should_load('interaction', file) else None   
+            origin_array = file['origin'][:self.limit] if self._should_load('origin', file) else None
+        
+        # Yield PPI objects
+        for idx in tqdm(range(num_items), desc='Loading PPI collection from HDF5'):
+            kwargs = {}
+            if p1_array is not None:
+                kwargs['p1'] = proteins[int(p1_array[idx])]
+            if p2_array is not None:
+                kwargs['p2'] = proteins[int(p2_array[idx])]
+            if interaction_array is not None:
+                print(json.loads(interaction_array[idx].decode('utf-8')))
+                print([string.decode('utf-8') for string in origin_array[idx]]
+)
+                kwargs['interaction'] = eval(json.loads(interaction_array[idx].decode('utf-8')))
+            if origin_array is not None:
+                kwargs['origin'] = [string.decode('utf-8') for string in origin_array[idx]]
+
+            ppi = PPI(**kwargs)
+            self.items.append(ppi)
+            yield ppi
+
+    def to_hdf5(self) -> None:
+        '''
+        Save the PPICollection to an HDF5 file. Based on the attributes
+        present in the Protein objects, and their types, its contents are saved
+        accordingly. Therefore, it requires string matching for each attribute.
+        Note: existing data is frozen and not overwritten.
+        '''
+        # Load protein collection
+        protein_collection = ProteinCollection(
+            file_path=self.protein_path,
+            datasets=['seq', 'taxon']
+        )
+        prot2idx = {
+            protein: idx 
+            for idx, protein in enumerate(protein_collection)
+            }
+
+        # Create HDF5 file
+        with h5py.File(self.file_path, 'a') as file:
+
+            # Number of items as attribute
+            file.attrs['num_items'] = len(self.items)
+
+            # Iterate over attributes
+            attributes = self.items[0].__dataclass_fields__.keys()
+            for attr in attributes:
+                # Skip existing datasets
+                if attr in file.keys():
+                    continue
+                # Skip attributes with all default values
+                all_default = all(getattr(item, attr) in (None, {}, []) for item in self.items)
+                if all_default: continue
+                # Save non-default attributes
+                match attr:
+                    # Handle protein attributes
+                    case 'p1' | 'p2':
+                        prots = [getattr(item, attr) for item in self.items]
+                        indices = [prot2idx[prot] for prot in prots]
+                        array = np.array(indices, dtype=np.int32)
+                        file.create_dataset(attr, data=array, compression="gzip", compression_opts=9, chunks=True)
+                    # Handle list of strings attributes
+                    case 'origin':
+                        lst = [item.origin for item in self.items]
+                        dtype = h5py.vlen_dtype(h5py.string_dtype(encoding='utf-8'))
+                        lst = [np.array(sublist, dtype=dtype) for sublist in lst]
+                        array = np.array(lst, dtype=dtype)
+                        file.create_dataset(attr, data=array, compression="gzip", compression_opts=9, chunks=True)
+                    # Handle list of strings and integers attributes
+                    case 'interaction':
+                        lst = [json.dumps(item.interaction) for item in self.items]
+                        dtype = h5py.string_dtype(encoding='utf-8')
+                        array = np.array(lst, dtype=dtype)
+                        file.create_dataset(attr, data=array, compression="gzip", compression_opts=9, chunks=True)
 
 if __name__ == "__main__":
     collection = ProteinCollection(

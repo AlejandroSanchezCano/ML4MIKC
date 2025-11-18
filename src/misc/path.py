@@ -18,6 +18,8 @@ TOOLS = CHONKY / 'tools'
 
 # Data directories
 DATA = PROJECT / 'data'
+LITERATUREMINING = DATA / 'literature_mining'
+SCORING = DATA / 'scoring'
 
 # Databases
 DATABASES = DATA / 'PPI_databases'
