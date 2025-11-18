@@ -40,24 +40,24 @@ uniprot2protein = {protein.uniprot: protein for protein in collection}
 
 # BioGRID
 biogrid = BioGRID('5.0.251')
-#biogrid.download_files()
-#biogrid.reduce_to_plants()
-#biogrid.mads_vs_all(mads_uniprots)
-#biogrid.mads_vs_mads(mads_uniprots)
+biogrid.download_files()
+biogrid.reduce_to_plants()
+biogrid.mads_vs_all(mads_uniprots)
+biogrid.mads_vs_mads(mads_uniprots)
 biogrid_ppi_uniprot_accessions = biogrid.ppi_uniprot_accessions()
 
-## IntAct
+# IntAct
 intact = IntAct('2025-08-08') 
-#intact.download_files()
-#intact.reduce_to_plants()
-#intact.mads_vs_all(mads_uniprots)
-#intact.mads_vs_mads(mads_uniprots)
+intact.download_files()
+intact.reduce_to_plants()
+intact.mads_vs_all(mads_uniprots)
+intact.mads_vs_mads(mads_uniprots)
 intact_ppi_uniprot_accessions = intact.ppi_uniprot_accessions()
 
 # PlaPPISite
 plappisite = PlaPPISite()
-#plappisite.mads_vs_all(mads_uniprots)
-#plappisite.mads_vs_mads(mads_uniprots)
+plappisite.mads_vs_all(mads_uniprots)
+plappisite.mads_vs_mads(mads_uniprots)
 plappisite_ppi_uniprot_accessions = plappisite.ppi_uniprot_accessions()
 
 # Save
